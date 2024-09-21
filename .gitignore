@@ -1,0 +1,8 @@
+.env
+target/
+
+Cargo.lock
+
+**/*.rs.bk
+
+*.pdb
