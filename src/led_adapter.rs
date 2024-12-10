@@ -22,7 +22,7 @@ pub mod aarch64 {
     pub struct Aarch64LedAdapter {
         adapter: ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter,
     }
-
+    
     impl Aarch64LedAdapter {
         pub fn new() -> Self {
             debug!("running aarch64");

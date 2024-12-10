@@ -1,5 +1,4 @@
-use core::time;
-use std::{thread::sleep, time::Instant};
+use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
 use led_adapter::{get_adapter, LedAdapter};
 use phf::phf_map;
 use log::{debug, error, info, warn};
@@ -99,7 +98,8 @@ fn write_buffer_leds(led_strip: &mut Vec<(u8, u8, u8)>, buf_size: usize, idx_fn:
 async fn main() -> Result<(), tokio::time::error::Error> {
     dotenv().ok();
     simple_logger::init_with_env().unwrap();
-    let now = Instant::now();
+
+    let prog_start = Instant::now();
     info!("!!!starting!!!");
 
     let client = reqwest::Client::new();
@@ -107,17 +107,35 @@ async fn main() -> Result<(), tokio::time::error::Error> {
     let mut spi_encoded_rgb_bits = vec![];
     info!("!!!adapter running!!!");
 
+    let running = Arc::new(AtomicBool::new(true));
+    let r = running.clone();
+    tokio::spawn(async move {
+        tokio::signal::ctrl_c().await.unwrap();
+        info!("ctrl-c interrupt");
+        r.store(false, Ordering::SeqCst);
+    });
+
     let mut i = 0;
-    loop {
+    let mut wait_time = Instant::now() - Duration::new(15, 0);
+    while running.load(Ordering::SeqCst) {
+        if wait_time.elapsed().as_secs() < 15 {
+            continue;
+        } else {
+            wait_time = Instant::now();
+        }
+
+        let loop_time = Instant::now();
+
         info!("!!!loop starting!!!");
-        info!("{:?} secs since main loop started.", now.elapsed().as_secs());
+        info!("{:?} secs since main loop started.", prog_start.elapsed().as_secs());
         info!("!!!main loop!!!");
+
         let res = get_one_line(&client).await;
         if res.is_err() {
             error!("Failed to get 1 Line data: {:?}", res);
         }
         if let Ok(json) = res {
-            info!("it_{}: get_one_line took {} seconds", i,  now.elapsed().as_secs());
+            info!("it_{}: get_one_line took {} seconds", i,  loop_time.elapsed().as_secs());
             i += 1;
             let trains_result = data_parser::parse_from_string(&json);
             if let Ok(trains) = trains_result {
@@ -163,10 +181,18 @@ async fn main() -> Result<(), tokio::time::error::Error> {
         } else {
             warn!("json parse error 1");
         }
-        info!("i_{} going to sleep after {} seconds", i, now.elapsed().as_secs());
-        info!("!!!sleeping!!!");
-        sleep(time::Duration::from_secs(15));
+        info!("i_{} going to sleep after {} seconds", i, loop_time.elapsed().as_secs());
         spi_encoded_rgb_bits.clear();
         info!("!!!end main loop!!!");
     }
+
+    info!("clearing LED strip");
+    spi_encoded_rgb_bits.clear();
+    for _ in 0..MAX_LEDS {
+        spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 0));
+    }
+    adapter.write_encoded_rgb(&spi_encoded_rgb_bits).unwrap();
+
+    info!("exiting");
+    Ok(())
 }

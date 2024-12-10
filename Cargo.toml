@@ -1,6 +1,6 @@
 [package]
 name = "link-board"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [dependencies]
@@ -11,7 +11,6 @@ serde_json = "1.0.128"
 ws2818-rgb-led-spi-driver = "2.0.0"
 openssl = { version = "0.10", features = ["vendored"] }
 phf = { version = "0.11", features = ["macros"] }
-ctrlc = { version = "3.4.5", features = ["termination"] }
 cfg-if = "1.0.0"
 log = { version = "0.4.22", features = ["max_level_debug", "release_max_level_warn"] }
 simple_logger = "5.0.0"
