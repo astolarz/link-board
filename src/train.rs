@@ -1,4 +1,8 @@
 use crate::Direction;
+use log::debug;
+
+const AT_STATION: (u8, u8, u8) = (0, 25, 0);
+const BTW_STATION: (u8, u8, u8) = (5, 5, 0);
 
 #[derive(Debug, Clone)]
 pub struct Train {
@@ -33,5 +37,27 @@ impl Train {
 
     pub fn direction(&self) -> Direction {
         self.direction
+    }
+
+    pub fn get_idx(&self) -> usize {
+        debug!("trying to get idx for {:?}", self.next_stop_name.as_str());
+        let raw_idx = crate::STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()];
+        debug!("raw_idx {:?}", raw_idx);
+        let idx = if self.at_station {
+            (raw_idx+crate::LED_BUFFER)*2
+        } else {
+            (raw_idx+crate::LED_BUFFER)*2 - 1
+        };
+        debug!("idx is {:?} because train.at_station is {}, heading ", idx, self.at_station);
+    
+        idx
+    }
+
+    pub fn get_led_rgb(&self) -> (u8, u8, u8) {
+        if self.at_station {
+            AT_STATION
+        } else {
+            BTW_STATION
+        }
     }
 }
