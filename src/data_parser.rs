@@ -13,7 +13,6 @@ fn parse_1_line_json(json: &Value) -> Result<Vec<train::Train>, serde_json::Erro
     let mut trains = vec![];
     if let Some(trips) = trip_values {
         for trip in trips {
-            debug!("{}", trip["tripId"]);
             let id = trip["tripId"].as_str().unwrap();
             // let next_stop = trip["status"]["nextStop"].as_str().unwrap_or("").to_string();
             let name = stops_to_names.get(&trip["status"]["nextStop"].as_str().unwrap()).unwrap().to_string();
@@ -48,9 +47,9 @@ fn parse_trip_direction(trip_id: &str, trips_json: &Value) -> Option<Direction> 
     if let Some(trips) = trips_json.as_array() {
         for trip in trips {
             let tmp_trip_id = trip["id"].as_str().unwrap();
-            debug!("{:?}\n{:?}\n", trip_id, tmp_trip_id);
+
             if trip_id == tmp_trip_id {
-                debug!("{:?}", trip);
+                debug!("trip: {:?}", trip);
                 if trip["directionId"].as_str().unwrap() == "0" {
                     return Some(Direction::S);
                 } else if trip["directionId"].as_str().unwrap() == "1" {
