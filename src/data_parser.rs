@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use log::debug;
 
 use serde_json::Value;
 
@@ -12,7 +13,7 @@ fn parse_1_line_json(json: &Value) -> Result<Vec<train::Train>, serde_json::Erro
     let mut trains = vec![];
     if let Some(trips) = trip_values {
         for trip in trips {
-            // println!("{}", trip["tripId"]);
+            debug!("{}", trip["tripId"]);
             let id = trip["tripId"].as_str().unwrap();
             // let next_stop = trip["status"]["nextStop"].as_str().unwrap_or("").to_string();
             let name = stops_to_names.get(&trip["status"]["nextStop"].as_str().unwrap()).unwrap().to_string();
@@ -21,7 +22,7 @@ fn parse_1_line_json(json: &Value) -> Result<Vec<train::Train>, serde_json::Erro
             if let Some(direction) = parse_trip_direction(&id, &json["data"]["references"]["trips"]) {
                 trains.push(train::Train::new(/*id.to_string(), next_stop,*/ name, direction, at_station));
             } else {
-                // println!("id: {}, json: {}", id, json["data"]["references"]["trips"]);
+                debug!("id: {}, json: {}", id, json["data"]["references"]["trips"]);
                 panic!("Couldn't parse direction");
             }
         }
@@ -47,20 +48,20 @@ fn parse_trip_direction(trip_id: &str, trips_json: &Value) -> Option<Direction> 
     if let Some(trips) = trips_json.as_array() {
         for trip in trips {
             let tmp_trip_id = trip["id"].as_str().unwrap();
-            // println!("{:?}\n{:?}\n", trip_id, tmp_trip_id);
+            debug!("{:?}\n{:?}\n", trip_id, tmp_trip_id);
             if trip_id == tmp_trip_id {
-                // println!("{:?}", trip);
+                debug!("{:?}", trip);
                 if trip["directionId"].as_str().unwrap() == "0" {
                     return Some(Direction::S);
                 } else if trip["directionId"].as_str().unwrap() == "1" {
                     return Some(Direction::N);
                 } else {
-                    println!("trip matched, direction failed.");
+                    debug!("trip matched, direction failed.");
                 }
             }
         }
     }
-    println!("id: {trip_id}");
+    debug!("id: {trip_id}");
     None
 }
 

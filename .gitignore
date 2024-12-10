@@ -1,6 +1,10 @@
 .cargo/
 .env
 target/
+data/
+src/data_parser_test.rs
+cp-link-board.sh
+.DS_Store
 
 Cargo.lock
 

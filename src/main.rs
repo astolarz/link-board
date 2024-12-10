@@ -1,19 +1,24 @@
 use core::time;
-use std::thread::sleep;
+use std::{thread::sleep, time::Instant};
+use led_adapter::{get_adapter, LedAdapter};
 use phf::phf_map;
+use log::{debug, error, info, warn};
 
-use dotenvy::{self};
+use dotenvy::{self, dotenv};
 
-use train::Train;
-use ws2818_rgb_led_spi_driver::{adapter_gen::WS28xxAdapter, adapter_spi::WS28xxSpiAdapter, encoding::encode_rgb};
+use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
 
 mod train;
 mod data_parser;
+mod led_adapter;
 
 const OBA_ENV_VAR: &str = "ONEBUSAWAY_API_KEY";
 pub const GET_1_LINE_URL: &str = "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/40_100479.json?key=";
 const MAX_LEDS: usize = 144;
-const FRONT_BUF_OFFSET: usize = 4;
+const LED_BUFFER: usize = 3;
+
+const AT_STATION: (u8, u8, u8) = (0, 25, 0);
+const BTW_STATION: (u8, u8, u8) = (5, 5, 0);
 
 pub static STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
     "Angle Lake" => 0,
@@ -40,6 +45,8 @@ pub static STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
     "Mountlake Terrace"=> 21,
     "Lynnwood City Center"=> 22
 };
+// size of station map * 2 for one LED in between, plus one more for beginning buffer.
+static PIXELS_FOR_STATIONS: usize = STN_NAME_TO_LED_IDX.len()*2 + 1;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Direction {
@@ -59,7 +66,7 @@ fn api_key() -> String {
 
 async fn get_one_line(client: &reqwest::Client) -> Result<String, reqwest::Error> {
     let url_with_key = format!("{}{}", GET_1_LINE_URL, api_key());
-    // println!("{url_with_key}");
+    debug!("{}", url_with_key);
     let result = client.get(url_with_key)
         .send()
         .await?
@@ -71,106 +78,105 @@ async fn get_one_line(client: &reqwest::Client) -> Result<String, reqwest::Error
 
 #[tokio::main]
 async fn main() -> Result<(), tokio::time::error::Error> {
+    dotenv().ok();
+    simple_logger::init_with_env().unwrap();
+    let now = Instant::now();
+    info!("!!!starting!!!");
 
     let client = reqwest::Client::new();
-    let mut adapter = WS28xxSpiAdapter::new("/dev/spidev0.0").unwrap();
+    let mut adapter = get_adapter();
     let mut spi_encoded_rgb_bits = vec![];
+    info!("!!!adapter running!!!");
 
-    ctrlc::set_handler(move || {
-        let mut close_adapter = WS28xxSpiAdapter::new("/dev/spidev0.0").unwrap();
-        let mut close_spi_encoded_rgb_bits = vec![];
-        // turn off all LEDs
-        close_spi_encoded_rgb_bits.clear();
-        for _ in 0..MAX_LEDS {
-            close_spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 0));
-        }
-        close_adapter.write_encoded_rgb(&close_spi_encoded_rgb_bits).unwrap();
-    }).expect("Failed to set ctrlc handler");
-
+    let mut i = 0;
     loop {
-    // for _ in 0..2 {
-        if let Ok(json) = get_one_line(&client).await {
-            // println!("{json}");
+        info!("!!!loop starting!!!");
+        info!("{:?} secs since main loop started.", now.elapsed().as_secs());
+        info!("!!!main loop!!!");
+        let res = get_one_line(&client).await;
+        if res.is_err() {
+            warn!("!!!!!!JSON ERROR!!!!!!");
+            error!("{:?}", res);
+            warn!("!!!!!!JSON ERROR!!!!!!");
+        }
+        if let Ok(json) = res {
+            info!("it_{}: get_one_line took {} seconds", i,  now.elapsed().as_secs());
+            i += 1;
             let trains_result = data_parser::parse_from_string(&json);
             if let Ok(trains) = trains_result {
-                let mut n_trains: Vec<Option<Train>> = vec![None; MAX_LEDS];
-                let mut s_trains: Vec<Option<Train>> = vec![None; MAX_LEDS];
+                let mut led_strip: Vec<(u8, u8, u8)> = vec![(0, 0, 0); MAX_LEDS];
+                let mut count = 0;
 
                 // write initial leds
-                println!("START BUFFER");
-                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 25));
-                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 25));
-                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 25));
+                info!("START BUFFER");
+                for i in 0..LED_BUFFER {
+                    led_strip[i] = (0, 0, 25);
+                }
+                count += LED_BUFFER;
+
+                let mut total = 0;
 
                 for train in trains {
-                    // println!("{:?}", train);
-                    println!("trying to get idx for {:?}", train.next_stop_name.as_str());
+                    total += 1;
+                    debug!("trying to get idx for {:?}", train.next_stop_name.as_str());
                     let raw_idx = STN_NAME_TO_LED_IDX[train.next_stop_name.as_str()];
-                    println!("raw_idx {:?}", raw_idx);
+                    debug!("raw_idx {:?}", raw_idx);
                     let idx = if train.at_station {
-                        (raw_idx+FRONT_BUF_OFFSET)*2
+                        (raw_idx+LED_BUFFER)*2
                     } else {
-                        (raw_idx+FRONT_BUF_OFFSET)*2 - 1
+                        (raw_idx+LED_BUFFER)*2 - 1
                     };
-                    print!("idx is {:?} because train.at_station is {}, heading ", idx, train.at_station);
+                    debug!("idx is {:?} because train.at_station is {}, heading ", idx, train.at_station);
 
                     if train.direction() == Direction::N {
-                        // n_trains.push(train);
-                        n_trains[idx] = Some(train);
-                        println!("North");
+                        led_strip[idx] = if train.at_station {
+                            AT_STATION
+                        } else {
+                            BTW_STATION
+                        };
+                        debug!("North");
                     } else {
-                        // s_trains.push(train);
-                        s_trains[idx] = Some(train);
-                        println!("South");
+                        led_strip[LED_BUFFER + PIXELS_FOR_STATIONS + idx] = if train.at_station {
+                            AT_STATION
+                        } else {
+                            BTW_STATION
+                        };
+                        debug!("South");
                     }
                 }
-                // println!("{:?}", n_trains);
-                // println!("{:?}", s_trains);
 
-                println!("NORTH TRAINS");
-                for train_opt in n_trains {
-                    if train_opt.is_some() {
-                        spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 25, 0));
-                    } else {
-                        spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 0));
-                    }
-                }
+                info!("{} total trains", total);
 
                 // write mid buffer LEDs
-                println!("MID BUFFER");
-                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(25, 0, 25));
-                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(25, 0, 25));
-                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(25, 0, 25));
-
-                println!("SOUTH TRAINS");
-                for train_opt in s_trains {
-                    if train_opt.is_some() {
-                        spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(25, 0, 0));
-                    } else {
-                        spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 0));
-                    }
+                info!("MID BUFFER");
+                for i in 0..LED_BUFFER {
+                    led_strip[LED_BUFFER + PIXELS_FOR_STATIONS + i] = (25, 0, 0);
                 }
+                count += LED_BUFFER;
 
                 // write end buffer LEDs
-                println!("END BUFFER");
-                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(25, 25, 0));
-                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(25, 25, 0));
-                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(25, 25, 0));
+                info!("END BUFFER");
+                for i in 0..LED_BUFFER {
+                    let idx = (LED_BUFFER * 3) + (PIXELS_FOR_STATIONS * 2) + i;
+                    led_strip[idx] = (25, 25, 0);
+                }
+                count += LED_BUFFER;
+                info!("expecting {} leds", count);
                 
-                println!("trying to write {} bytes to SPI", spi_encoded_rgb_bits.len());
-                // for chunk in spi_encoded_rgb_bits.chunks(4096) {
-                //     adapter.write_encoded_rgb(&chunk).unwrap();
-                // }
+                for led in led_strip {
+                    spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(led.0, led.1, led.2));
+                }
                 adapter.write_encoded_rgb(&spi_encoded_rgb_bits).unwrap();
             } else {
-                println!("json parse error 2")
+                info!("json parse error 2")
             }
         } else {
-            println!("json parse error 1");
+            info!("json parse error 1");
         }
-        sleep(time::Duration::from_secs(5));
+        info!("i_{} going to sleep after {} seconds", i, now.elapsed().as_secs());
+        info!("!!!sleeping!!!");
+        sleep(time::Duration::from_secs(15));
         spi_encoded_rgb_bits.clear();
+        info!("!!!end main loop!!!");
     }
-
-    // Ok(())
 }
