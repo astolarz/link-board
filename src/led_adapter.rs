@@ -1,5 +1,6 @@
 pub trait LedAdapter {
-    fn write_encoded_rgb(&mut self, encoded_data: &[u8]) -> Result<(), String>;
+    fn write_rgb(&mut self, rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String>;
+    fn clear(&mut self) -> Result<(), String>;
 }
 
 pub fn get_adapter() -> impl LedAdapter {
@@ -16,6 +17,7 @@ pub fn get_adapter() -> impl LedAdapter {
 pub mod aarch64 {
     use log::debug;
     use ws2818_rgb_led_spi_driver::{adapter_gen::WS28xxAdapter, adapter_spi::WS28xxSpiAdapter};
+    use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
 
     use crate::led_adapter::LedAdapter;
 
@@ -33,8 +35,20 @@ pub mod aarch64 {
     }
 
     impl LedAdapter for Aarch64LedAdapter {
-        fn write_encoded_rgb(&mut self, encoded_data: &[u8]) -> Result<(), String> {
-            self.adapter.write_encoded_rgb(encoded_data)
+        fn write_rgb(&mut self, rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String> {
+            let mut spi_encoded_rgb_bits = vec![];
+            for rgb in rgb_vec {
+                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(rgb.0, rgb.1, rgb.2));
+            }
+            self.adapter.write_encoded_rgb(spi_encoded_rgb_bits)
+        }
+
+        fn clear(&mut self) -> Result<(), String> {
+            let mut spi_encoded_rgb_bits = vec![];
+            for _ in 0..MAX_LEDS {
+                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 0));
+            }
+            self.adapter.write_encoded_rgb(spi_encoded_rgb_bits)
         }
     }
 }
@@ -56,7 +70,11 @@ pub mod emptyimpl {
     }
 
     impl LedAdapter for EmptyImplLedAdapter {
-        fn write_encoded_rgb(&mut self, _encoded_data: &[u8]) -> Result<(), String> {
+        fn write_rgb(&mut self, _rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String> {
+            Ok(())
+        }
+
+        fn clear(&mut self) -> Result<(), String> {
             Ok(())
         }
     }

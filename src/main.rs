@@ -3,7 +3,6 @@ use led_adapter::{get_adapter, LedAdapter};
 use phf::phf_map;
 use log::{error, info, warn};
 use dotenvy::{self, dotenv};
-use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
 
 mod train;
 mod data_parser;
@@ -82,7 +81,6 @@ async fn main() -> Result<(), tokio::time::error::Error> {
 
     let client = reqwest::Client::new();
     let mut adapter = get_adapter();
-    let mut spi_encoded_rgb_bits = vec![];
     info!("!!!adapter running!!!");
 
     let running = Arc::new(AtomicBool::new(true));
@@ -148,10 +146,7 @@ async fn main() -> Result<(), tokio::time::error::Error> {
                 count += write_buffer_leds(&mut led_strip, LED_BUFFER, end_buf_idx, END_BUF_LED);
                 info!("expecting {} leds", count);
                 
-                for led in led_strip {
-                    spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(led.0, led.1, led.2));
-                }
-                adapter.write_encoded_rgb(&spi_encoded_rgb_bits).unwrap();
+                adapter.write_rgb(led_strip).unwrap();
             } else {
                 warn!("json parse error 2")
             }
@@ -159,16 +154,11 @@ async fn main() -> Result<(), tokio::time::error::Error> {
             warn!("json parse error 1");
         }
         info!("i_{} going to sleep after {} seconds", i, loop_time.elapsed().as_secs());
-        spi_encoded_rgb_bits.clear();
         info!("!!!end main loop!!!");
     }
 
     info!("clearing LED strip");
-    spi_encoded_rgb_bits.clear();
-    for _ in 0..MAX_LEDS {
-        spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 0));
-    }
-    adapter.write_encoded_rgb(&spi_encoded_rgb_bits).unwrap();
+    adapter.clear().unwrap();
 
     info!("exiting");
     Ok(())
