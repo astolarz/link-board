@@ -3,7 +3,7 @@
 target/
 data/
 src/data_parser_test.rs
-cp-link-board.sh
+utils/
 .DS_Store
 
 Cargo.lock
