@@ -40,15 +40,15 @@ pub mod aarch64 {
             for rgb in rgb_vec {
                 spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(rgb.0, rgb.1, rgb.2));
             }
-            self.adapter.write_encoded_rgb(spi_encoded_rgb_bits)
+            self.adapter.write_encoded_rgb(&spi_encoded_rgb_bits)
         }
 
         fn clear(&mut self) -> Result<(), String> {
             let mut spi_encoded_rgb_bits = vec![];
-            for _ in 0..MAX_LEDS {
+            for _ in 0..crate::MAX_LEDS {
                 spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 0));
             }
-            self.adapter.write_encoded_rgb(spi_encoded_rgb_bits)
+            self.adapter.write_encoded_rgb(&spi_encoded_rgb_bits)
         }
     }
 }

@@ -3,7 +3,6 @@ name = "link-board"
 version = "0.1.1"
 edition = "2021"
 license = "MIT OR Apache-2.0"
-license-file = "LICENSE"
 
 [dependencies]
 dotenvy = "0.15.7"
