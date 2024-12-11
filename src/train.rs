@@ -1,5 +1,5 @@
 use crate::Direction;
-use log::debug;
+use log::{debug, warn};
 
 const AT_STATION: (u8, u8, u8) = (0, 25, 0);
 const BTW_STATION: (u8, u8, u8) = (5, 5, 0);
@@ -39,14 +39,17 @@ impl Train {
         self.direction
     }
 
-    pub fn get_idx(&self) -> usize {
+    pub fn get_relative_idx(&self) -> usize {
         debug!("trying to get idx for {:?}", self.next_stop_name.as_str());
         let raw_idx = crate::STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()];
         debug!("raw_idx {:?}", raw_idx);
         let idx = if self.at_station {
-            (raw_idx+crate::LED_BUFFER)*2
+            raw_idx * 2
+        } else if !self.at_station && raw_idx == 0 {
+            warn!("heading south to Angle Lake, right? {:?} {}", self.direction, self.next_stop_name);
+            1
         } else {
-            (raw_idx+crate::LED_BUFFER)*2 - 1
+            (raw_idx * 2) - 1
         };
         debug!("idx is {:?} because train.at_station is {}, heading ", idx, self.at_station);
     
