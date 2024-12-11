@@ -5,6 +5,29 @@ use serde_json::Value;
 
 use crate::{train, Direction};
 
+const OBA_ENV_VAR: &str = "ONEBUSAWAY_API_KEY";
+const GET_1_LINE_URL: &str = "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/40_100479.json?key=";
+
+fn api_key() -> String {
+    let key = dotenvy::var(OBA_ENV_VAR);
+    if key.is_err() {
+        panic!("Failed to get API key!");
+    }
+    key.unwrap()
+}
+
+pub async fn get_one_line(client: &reqwest::Client) -> Result<String, reqwest::Error> {
+    let url_with_key = format!("{}{}", GET_1_LINE_URL, api_key());
+    debug!("{}", url_with_key);
+    let result = client.get(url_with_key)
+        .send()
+        .await?
+        .text()
+        .await?;
+    
+    Ok(result)
+}
+
 fn parse_1_line_json(json: &Value) -> Result<Vec<train::Train>, serde_json::Error> {
     let references = &json["data"]["references"];
     let stops_to_names = parse_stop_names(&references["stops"]);

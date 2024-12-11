@@ -1,7 +1,7 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
 use led_adapter::{get_adapter, LedAdapter};
 use phf::phf_map;
-use log::{debug, error, info, warn};
+use log::{error, info, warn};
 use dotenvy::{self, dotenv};
 use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
 
@@ -9,8 +9,6 @@ mod train;
 mod data_parser;
 mod led_adapter;
 
-const OBA_ENV_VAR: &str = "ONEBUSAWAY_API_KEY";
-pub const GET_1_LINE_URL: &str = "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/40_100479.json?key=";
 const MAX_LEDS: usize = 144;
 pub const LED_BUFFER: usize = 3;
 const START_BUF_LED: (u8, u8, u8) = (0, 0, 25);
@@ -51,26 +49,6 @@ pub enum Direction {
     S,
     E, // for 2 Line
     W, // for 2 Line
-}
-
-fn api_key() -> String {
-    let key = dotenvy::var(OBA_ENV_VAR);
-    if key.is_err() {
-        panic!("Failed to get API key!");
-    }
-    key.unwrap()
-}
-
-async fn get_one_line(client: &reqwest::Client) -> Result<String, reqwest::Error> {
-    let url_with_key = format!("{}{}", GET_1_LINE_URL, api_key());
-    debug!("{}", url_with_key);
-    let result = client.get(url_with_key)
-        .send()
-        .await?
-        .text()
-        .await?;
-    
-    Ok(result)
 }
 
 fn start_buf_idx(idx: usize) -> usize {
@@ -126,11 +104,10 @@ async fn main() -> Result<(), tokio::time::error::Error> {
 
         let loop_time = Instant::now();
 
-        info!("!!!loop starting!!!");
+        info!("!!!main loop starting!!!");
         info!("{:?} secs since main loop started.", prog_start.elapsed().as_secs());
-        info!("!!!main loop!!!");
 
-        let res = get_one_line(&client).await;
+        let res = data_parser::get_one_line(&client).await;
         if res.is_err() {
             error!("Failed to get 1 Line data: {:?}", res);
         }
