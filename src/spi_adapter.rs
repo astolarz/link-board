@@ -1,9 +1,9 @@
-pub trait LedAdapter {
+pub trait SpiAdapter {
     fn write_rgb(&mut self, rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String>;
     fn clear(&mut self) -> Result<(), String>;
 }
 
-pub fn get_adapter() -> impl LedAdapter {
+pub fn get_adapter() -> impl SpiAdapter {
     cfg_if::cfg_if! {
         if #[cfg(all(target_arch="aarch64", target_os="linux", target_env="gnu"))] {
             aarch64::Aarch64LedAdapter::new()
@@ -19,7 +19,7 @@ pub mod aarch64 {
     use ws2818_rgb_led_spi_driver::{adapter_gen::WS28xxAdapter, adapter_spi::WS28xxSpiAdapter};
     use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
 
-    use crate::spi_adapter::LedAdapter;
+    use crate::spi_adapter::SpiAdapter;
 
     pub struct Aarch64LedAdapter {
         adapter: ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter,
@@ -34,7 +34,7 @@ pub mod aarch64 {
        }
     }
 
-    impl LedAdapter for Aarch64LedAdapter {
+    impl SpiAdapter for Aarch64LedAdapter {
         fn write_rgb(&mut self, rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String> {
             let mut spi_encoded_rgb_bits = vec![];
             for rgb in rgb_vec {
@@ -57,7 +57,7 @@ pub mod aarch64 {
 pub mod emptyimpl {
     use log::debug;
     use colored::Colorize;
-    use crate::spi_adapter::LedAdapter;
+    use crate::spi_adapter::SpiAdapter;
 
     pub struct EmptyImplLedAdapter {
     }
@@ -70,7 +70,7 @@ pub mod emptyimpl {
         }
     }
 
-    impl LedAdapter for EmptyImplLedAdapter {
+    impl SpiAdapter for EmptyImplLedAdapter {
         fn write_rgb(&mut self, rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String> {
             let line = rgb_vec.iter()
                 .map(|rgb| format!("{}", "▊".truecolor(rgb.0, rgb.1, rgb.2)))

@@ -1,5 +1,5 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
-use spi_adapter::{get_adapter, LedAdapter};
+use spi_adapter::{get_adapter, SpiAdapter};
 use phf::phf_map;
 use log::{error, info, warn};
 use dotenvy::{self, dotenv};
