@@ -1,5 +1,5 @@
-use crate::Direction;
 use log::debug;
+use crate::constants::{Direction, STN_NAME_TO_LED_IDX};
 
 const AT_STATION: (u8, u8, u8) = (0, 255, 0);
 const BTW_STATION: (u8, u8, u8) = (100, 100, 0);
@@ -41,7 +41,7 @@ impl Train {
 
     pub fn get_relative_idx(&self) -> usize {
         debug!("trying to get idx for {:?}", self.next_stop_name.as_str());
-        let raw_idx = crate::STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()];
+        let raw_idx = STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()];
         debug!("raw_idx {:?}", raw_idx);
         // TODO: figure out logic for not at station, but next station is max or whatever.
         // will probably also need to adjust index logic in main.rs

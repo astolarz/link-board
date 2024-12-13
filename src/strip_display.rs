@@ -1,4 +1,4 @@
-use crate::{link_board_display::LinkBoardDisplay, spi_adapter::{self, spi::SpiAdapter, SpiWriter}, train::Train, Direction, PIXELS_FOR_STATIONS};
+use crate::{constants::{Direction, STN_NAME_TO_LED_IDX}, link_board_display::LinkBoardDisplay, spi_adapter::{self, spi::SpiAdapter, SpiWriter}, train::Train};
 use log::{info, warn};
 use colored::Colorize;
 
@@ -9,6 +9,8 @@ const START_BUF_LED: (u8, u8, u8) = (255, 0, 0);
 const MID_BUF_LED: (u8, u8, u8) = (255, 165, 0);
 const END_BUF_LED: (u8, u8, u8) = (0, 0, 255);
 const STAGING_LED: (u8, u8, u8) = (255, 0, 255);
+// size of station map * 2 for one LED in between, plus one more for beginning buffer.
+const PIXELS_FOR_STATIONS: usize = (STN_NAME_TO_LED_IDX.len() * 2) - 1;
 
 // First three LEDs are start buffer (red).
 //
