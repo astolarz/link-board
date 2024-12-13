@@ -1,6 +1,6 @@
 pub trait SpiWriter {
     fn write_rgb(&mut self, rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String>;
-    fn clear(&mut self) -> Result<(), String>;
+    fn clear(&mut self, num_to_clear: usize) -> Result<(), String>;
 }
 
 pub fn get_adapter() -> spi::SpiAdapter {
@@ -18,7 +18,6 @@ pub mod spi {
     use log::debug;
     use ws2818_rgb_led_spi_driver::{adapter_gen::WS28xxAdapter, adapter_spi::WS28xxSpiAdapter};
     use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
-    use crate::link_board_display::MAX_LEDS_NEEDED;
 
     use super::SpiWriter;
 
@@ -44,9 +43,9 @@ pub mod spi {
             self.adapter.write_encoded_rgb(&spi_encoded_rgb_bits)
         }
 
-        fn clear(&mut self) -> Result<(), String> {
+        fn clear(&mut self, num_to_clear: usize) -> Result<(), String> {
             let mut spi_encoded_rgb_bits = vec![];
-            for _ in 0..MAX_LEDS_NEEDED {
+            for _ in 0..num_to_clear {
                 spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 0));
             }
             self.adapter.write_encoded_rgb(&spi_encoded_rgb_bits)
@@ -83,7 +82,7 @@ pub mod spi {
             Ok(())
         }
 
-        fn clear(&mut self) -> Result<(), String> {
+        fn clear(&mut self, _num_to_clear: usize) -> Result<(), String> {
             Ok(())
         }
     }

@@ -4,6 +4,8 @@ use phf::phf_map;
 use log::{error, info};
 use dotenvy::{self, dotenv};
 
+mod strip_display;
+mod string_display;
 mod link_board_display;
 mod train;
 mod data_parser;
@@ -55,7 +57,7 @@ async fn main() -> Result<(), tokio::time::error::Error> {
     let prog_start = Instant::now();
 
     let client = reqwest::Client::new();
-    let mut display = link_board_display::get_strip_display();
+    let mut display = link_board_display::get_display();
 
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
