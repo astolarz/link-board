@@ -46,7 +46,8 @@ const STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
 const PIXELS_FOR_STATIONS: usize = (STN_NAME_TO_LED_IDX.len() * 2) - 1;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Direction {
+#[allow(dead_code)]
+enum Direction {
     N,
     S,
     E, // for 2 Line

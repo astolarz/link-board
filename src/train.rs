@@ -2,7 +2,7 @@ use crate::Direction;
 use log::debug;
 
 const AT_STATION: (u8, u8, u8) = (0, 255, 0);
-const BTW_STATION: (u8, u8, u8) = (255, 255, 0);
+const BTW_STATION: (u8, u8, u8) = (100, 100, 0);
 
 #[derive(Debug, Clone)]
 pub struct Train {
