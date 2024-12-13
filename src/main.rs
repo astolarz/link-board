@@ -154,11 +154,9 @@ async fn main() -> Result<(), tokio::time::error::Error> {
     simple_logger::init_with_env().unwrap();
 
     let prog_start = Instant::now();
-    info!("!!!starting!!!");
 
     let client = reqwest::Client::new();
     let mut adapter = get_adapter();
-    info!("!!!adapter running!!!");
 
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
@@ -179,7 +177,6 @@ async fn main() -> Result<(), tokio::time::error::Error> {
 
         let loop_time = Instant::now();
 
-        info!("!!!main loop starting!!!");
         info!("{:?} secs since main loop started.", prog_start.elapsed().as_secs());
 
         let res = data_parser::get_one_line(&client).await;
@@ -217,7 +214,6 @@ async fn main() -> Result<(), tokio::time::error::Error> {
             warn!("json parse error 1");
         }
         info!("i_{} going to sleep after {} seconds", i, loop_time.elapsed().as_secs());
-        info!("!!!end main loop!!!");
     }
 
     info!("clearing LED strip");
