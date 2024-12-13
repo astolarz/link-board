@@ -10,11 +10,13 @@ mod led_adapter;
 
 const MAX_LEDS: usize = 144;
 pub const LED_BUFFER_COUNT: usize = 3;
+const LED_OFF: (u8, u8, u8) = (0, 0, 0,);
 const START_BUF_LED: (u8, u8, u8) = (0, 0, 25);
 const MID_BUF_LED: (u8, u8, u8) = (25, 0, 0);
 const END_BUF_LED: (u8, u8, u8) = (25, 25, 0);
+const STAGING_LED: (u8, u8, u8) = (25, 0, 25);
 
-pub static STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
+pub const STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
     "Angle Lake" => 0,
     "SeaTac/Airport"=> 1,
     "Tukwila Int'l Blvd"=> 2,
@@ -40,7 +42,7 @@ pub static STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
     "Lynnwood City Center"=> 22
 };
 // size of station map * 2 for one LED in between, plus one more for beginning buffer.
-static PIXELS_FOR_STATIONS: usize = STN_NAME_TO_LED_IDX.len()*2 + 1;
+const PIXELS_FOR_STATIONS: usize = (STN_NAME_TO_LED_IDX.len() * 2) - 1;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Direction {
@@ -50,30 +52,45 @@ pub enum Direction {
     W, // for 2 Line
 }
 
-fn start_buf_init_idx() -> usize {
-    0
-}
 
-fn north_train_init_idx() -> usize {
-    start_buf_init_idx() + LED_BUFFER_COUNT
-}
+// First three LEDs are start buffer (blue).
+//
+// Next 45 LEDs are for northbound trains, starting with Angle Lake station,
+// second to last is Lynnwood City Center, last is staging (purple) for train
+// about to return south.
+//
+// Three LEDs for mid buffer (red).
+//
+// Next 45 LEDs are for southbound trains, starting with staging (purple) for
+// train about to return north, then Angle Lake, ending with Lynnwood City Center.
+//
+// Three LEDs for end buffer (yellow).
+//
+// For north and southbound train sections, LEDs alternate between at station
+// (green), and in between stations (yellow). If more than one train is in one
+// of those sections, 10 blue is added, making at-station LEDs more teal, and in
+// between stations more purple.
+//
+// Both north and southbound sections have Angle Lake (southernmost station) on
+// the left, and Lynwood City Center (northernmost station) on the right.
+const START_BUF_INIT_IDX: usize = 0;
 
-fn mid_buf_init_idx() -> usize {
-    north_train_init_idx() + PIXELS_FOR_STATIONS
-}
+const NORTH_TRAIN_INIT_IDX: usize = START_BUF_INIT_IDX + LED_BUFFER_COUNT;
+// Lynnwood City Center + 1
+const NORTH_TRAIN_STAGING_IDX: usize = NORTH_TRAIN_INIT_IDX + PIXELS_FOR_STATIONS;
 
-fn south_train_init_idx() -> usize {
-    mid_buf_init_idx() + LED_BUFFER_COUNT
-}
+const MID_BUF_INIT_IDX: usize = NORTH_TRAIN_STAGING_IDX + 1;
 
-fn end_buf_init_idx() -> usize {
-    south_train_init_idx() + PIXELS_FOR_STATIONS
-}
+// Angle Lake - 1
+const SOUTH_TRAIN_STAGING_IDX: usize = MID_BUF_INIT_IDX + LED_BUFFER_COUNT;
+const SOUTH_TRAIN_INIT_IDX: usize = SOUTH_TRAIN_STAGING_IDX + 1;
 
-fn prepare_buffer_leds(led_strip: &mut Vec<(u8, u8, u8)>, init_idx_fn: fn() -> usize, led_val: (u8, u8, u8)) -> usize {
+const END_BUF_INIT_IDX: usize = SOUTH_TRAIN_INIT_IDX + PIXELS_FOR_STATIONS;
+
+fn prepare_buffer_leds(led_strip: &mut Vec<(u8, u8, u8)>, init_idx: usize, led_val: (u8, u8, u8)) -> usize {
     let mut count_written = 0;
     for i in 0..LED_BUFFER_COUNT {
-        let idx = init_idx_fn() + i;
+        let idx = init_idx + i;
         if led_strip[idx] != (0, 0, 0) {
             warn!("multiple trains at index [{}]", idx);
         }
@@ -91,13 +108,24 @@ fn index_trains(led_strip: &mut Vec<(u8, u8, u8)>, trains: Vec<train::Train>) ->
         total += 1;
 
         let idx = if train.direction() == Direction::N {
-            north_train_init_idx() + train.get_relative_idx()
+            NORTH_TRAIN_INIT_IDX + train.get_relative_idx()
         } else {
-            south_train_init_idx() + train.get_relative_idx()
+            SOUTH_TRAIN_INIT_IDX + train.get_relative_idx()
         };
-        info!("placing train at index [{}]", idx);
 
-        led_strip[idx] = train.get_led_rgb();
+        let current_color = led_strip[idx];
+        led_strip[idx] = if idx == NORTH_TRAIN_STAGING_IDX || idx == SOUTH_TRAIN_STAGING_IDX {
+            STAGING_LED
+        } else {
+            let mut new_color = train.get_led_rgb();
+            if current_color == LED_OFF {
+                new_color
+            } else {
+                new_color.2 += 10;
+                new_color
+            }
+        };
+        info!("placing ({:?}) train at index [{}] with color {:?}; next stop: {}", train.direction(), idx, led_strip[idx], train.next_stop_name);
     }
 
     info!("{} total trains", total);
@@ -152,17 +180,17 @@ async fn main() -> Result<(), tokio::time::error::Error> {
 
                 // write initial leds
                 info!("START BUFFER");
-                count += prepare_buffer_leds(&mut led_strip, start_buf_init_idx, START_BUF_LED);
+                count += prepare_buffer_leds(&mut led_strip, START_BUF_INIT_IDX, START_BUF_LED);
 
                 count += index_trains(&mut led_strip, trains);
 
                 // write mid buffer LEDs
                 info!("MID BUFFER");
-                count += prepare_buffer_leds(&mut led_strip, mid_buf_init_idx, MID_BUF_LED);
+                count += prepare_buffer_leds(&mut led_strip, MID_BUF_INIT_IDX, MID_BUF_LED);
 
                 // write end buffer LEDs
                 info!("END BUFFER");
-                count += prepare_buffer_leds(&mut led_strip, end_buf_init_idx, END_BUF_LED);
+                count += prepare_buffer_leds(&mut led_strip, END_BUF_INIT_IDX, END_BUF_LED);
                 info!("expecting {} leds", count);
                 
                 adapter.write_rgb(led_strip).unwrap();

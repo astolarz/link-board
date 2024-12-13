@@ -1,5 +1,5 @@
 use crate::Direction;
-use log::{debug, warn};
+use log::debug;
 
 const AT_STATION: (u8, u8, u8) = (0, 25, 0);
 const BTW_STATION: (u8, u8, u8) = (5, 5, 0);
@@ -43,13 +43,17 @@ impl Train {
         debug!("trying to get idx for {:?}", self.next_stop_name.as_str());
         let raw_idx = crate::STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()];
         debug!("raw_idx {:?}", raw_idx);
+        // TODO: figure out logic for not at station, but next station is max or whatever.
+        // will probably also need to adjust index logic in main.rs
+        // maybe just actually reverse LEDs for southbound?
         let idx = if self.at_station {
             raw_idx * 2
-        } else if !self.at_station && raw_idx == 0 {
-            warn!("heading south to Angle Lake, right? {:?} {}", self.direction, self.next_stop_name);
-            1
         } else {
-            (raw_idx * 2) - 1
+            if self.direction == Direction::N {
+                (raw_idx * 2) - 1
+            } else {
+                (raw_idx * 2) + 1
+            }
         };
         debug!("idx is {:?} because train.at_station is {}, heading ", idx, self.at_station);
     
