@@ -1,31 +1,32 @@
-pub trait SpiAdapter {
+pub trait SpiWriter {
     fn write_rgb(&mut self, rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String>;
     fn clear(&mut self) -> Result<(), String>;
 }
 
-pub fn get_adapter() -> impl SpiAdapter {
+pub fn get_adapter() -> spi::SpiAdapter {
     cfg_if::cfg_if! {
         if #[cfg(all(target_arch="aarch64", target_os="linux", target_env="gnu"))] {
-            aarch64::Aarch64LedAdapter::new()
+            spi::SpiAdapter::new()
         } else {
-            emptyimpl::EmptyImplLedAdapter::new()
+            spi::SpiAdapter::new()
         }
     }
 }
 
 #[cfg(all(target_arch="aarch64", target_os="linux", target_env="gnu"))]
-pub mod aarch64 {
+pub mod spi {
     use log::debug;
     use ws2818_rgb_led_spi_driver::{adapter_gen::WS28xxAdapter, adapter_spi::WS28xxSpiAdapter};
     use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
+    use crate::link_board_display::MAX_LEDS_NEEDED;
 
-    use crate::spi_adapter::SpiAdapter;
+    use super::SpiWriter;
 
-    pub struct Aarch64LedAdapter {
+    pub struct SpiAdapter {
         adapter: ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter,
     }
     
-    impl Aarch64LedAdapter {
+    impl SpiAdapter {
         pub fn new() -> Self {
             debug!("running aarch64");
             Self {
@@ -34,7 +35,7 @@ pub mod aarch64 {
        }
     }
 
-    impl SpiAdapter for Aarch64LedAdapter {
+    impl SpiWriter for SpiAdapter {
         fn write_rgb(&mut self, rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String> {
             let mut spi_encoded_rgb_bits = vec![];
             for rgb in rgb_vec {
@@ -45,7 +46,7 @@ pub mod aarch64 {
 
         fn clear(&mut self) -> Result<(), String> {
             let mut spi_encoded_rgb_bits = vec![];
-            for _ in 0..crate::MAX_LEDS_NEEDED {
+            for _ in 0..MAX_LEDS_NEEDED {
                 spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 0));
             }
             self.adapter.write_encoded_rgb(&spi_encoded_rgb_bits)
@@ -54,15 +55,16 @@ pub mod aarch64 {
 }
 
 #[cfg(any(not(target_arch="aarch64"), not(target_os="linux"), not(target_env="gnu")))]
-pub mod emptyimpl {
+pub mod spi {
     use log::debug;
     use colored::Colorize;
-    use crate::spi_adapter::SpiAdapter;
 
-    pub struct EmptyImplLedAdapter {
+    use super::SpiWriter;
+
+    pub struct SpiAdapter {
     }
 
-    impl EmptyImplLedAdapter {
+    impl SpiAdapter {
         pub fn new() -> Self {
             debug!("running anything else");
             Self {
@@ -70,7 +72,7 @@ pub mod emptyimpl {
         }
     }
 
-    impl SpiAdapter for EmptyImplLedAdapter {
+    impl SpiWriter for SpiAdapter {
         fn write_rgb(&mut self, rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String> {
             let line = rgb_vec.iter()
                 .map(|rgb| format!("{}", "▊".truecolor(rgb.0, rgb.1, rgb.2)))
