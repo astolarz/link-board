@@ -19,7 +19,7 @@ pub mod aarch64 {
     use ws2818_rgb_led_spi_driver::{adapter_gen::WS28xxAdapter, adapter_spi::WS28xxSpiAdapter};
     use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
 
-    use crate::led_adapter::LedAdapter;
+    use crate::spi_adapter::LedAdapter;
 
     pub struct Aarch64LedAdapter {
         adapter: ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter,
@@ -57,7 +57,7 @@ pub mod aarch64 {
 pub mod emptyimpl {
     use log::debug;
     use colored::Colorize;
-    use crate::led_adapter::LedAdapter;
+    use crate::spi_adapter::LedAdapter;
 
     pub struct EmptyImplLedAdapter {
     }

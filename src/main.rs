@@ -1,5 +1,5 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
-use led_adapter::{get_adapter, LedAdapter};
+use spi_adapter::{get_adapter, LedAdapter};
 use phf::phf_map;
 use log::{error, info, warn};
 use dotenvy::{self, dotenv};
@@ -7,7 +7,7 @@ use colored::Colorize;
 
 mod train;
 mod data_parser;
-mod led_adapter;
+mod spi_adapter;
 
 const MAX_LEDS_FOR_STRIP: usize = 144;
 const LED_BUFFER_COUNT: usize = 3;
