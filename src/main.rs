@@ -208,10 +208,10 @@ async fn main() -> Result<(), tokio::time::error::Error> {
                 
                 adapter.write_rgb(led_strip).unwrap();
             } else {
-                warn!("json parse error 2")
+                error!("json parse error 2")
             }
         } else {
-            warn!("json parse error 1");
+            error!("json parse error 1");
         }
         info!("i_{} going to sleep after {} seconds", i, loop_time.elapsed().as_secs());
     }
