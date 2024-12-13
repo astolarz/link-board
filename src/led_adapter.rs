@@ -45,7 +45,7 @@ pub mod aarch64 {
 
         fn clear(&mut self) -> Result<(), String> {
             let mut spi_encoded_rgb_bits = vec![];
-            for _ in 0..crate::MAX_LEDS {
+            for _ in 0..crate::MAX_LEDS_NEEDED {
                 spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 0));
             }
             self.adapter.write_encoded_rgb(&spi_encoded_rgb_bits)
@@ -56,6 +56,7 @@ pub mod aarch64 {
 #[cfg(any(not(target_arch="aarch64"), not(target_os="linux"), not(target_env="gnu")))]
 pub mod emptyimpl {
     use log::debug;
+    use colored::Colorize;
     use crate::led_adapter::LedAdapter;
 
     pub struct EmptyImplLedAdapter {
@@ -70,7 +71,13 @@ pub mod emptyimpl {
     }
 
     impl LedAdapter for EmptyImplLedAdapter {
-        fn write_rgb(&mut self, _rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String> {
+        fn write_rgb(&mut self, rgb_vec: Vec<(u8, u8, u8)>) -> Result<(), String> {
+            let line = rgb_vec.iter()
+                .map(|rgb| format!("{}", "▊".truecolor(rgb.0, rgb.1, rgb.2)))
+                .collect::<Vec<String>>()
+                .join("");
+            println!("{}", line);
+
             Ok(())
         }
 

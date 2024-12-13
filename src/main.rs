@@ -3,20 +3,21 @@ use led_adapter::{get_adapter, LedAdapter};
 use phf::phf_map;
 use log::{error, info, warn};
 use dotenvy::{self, dotenv};
+use colored::Colorize;
 
 mod train;
 mod data_parser;
 mod led_adapter;
 
-const MAX_LEDS: usize = 144;
-pub const LED_BUFFER_COUNT: usize = 3;
+const MAX_LEDS_FOR_STRIP: usize = 144;
+const LED_BUFFER_COUNT: usize = 3;
 const LED_OFF: (u8, u8, u8) = (0, 0, 0,);
-const START_BUF_LED: (u8, u8, u8) = (0, 0, 25);
-const MID_BUF_LED: (u8, u8, u8) = (25, 0, 0);
-const END_BUF_LED: (u8, u8, u8) = (25, 25, 0);
-const STAGING_LED: (u8, u8, u8) = (25, 0, 25);
+const START_BUF_LED: (u8, u8, u8) = (255, 0, 0);
+const MID_BUF_LED: (u8, u8, u8) = (255, 165, 0);
+const END_BUF_LED: (u8, u8, u8) = (0, 0, 255);
+const STAGING_LED: (u8, u8, u8) = (255, 0, 255);
 
-pub const STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
+const STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
     "Angle Lake" => 0,
     "SeaTac/Airport"=> 1,
     "Tukwila Int'l Blvd"=> 2,
@@ -53,18 +54,18 @@ pub enum Direction {
 }
 
 
-// First three LEDs are start buffer (blue).
+// First three LEDs are start buffer (red).
 //
 // Next 45 LEDs are for northbound trains, starting with Angle Lake station,
 // second to last is Lynnwood City Center, last is staging (purple) for train
 // about to return south.
 //
-// Three LEDs for mid buffer (red).
+// Three LEDs for mid buffer (orange).
 //
 // Next 45 LEDs are for southbound trains, starting with staging (purple) for
 // train about to return north, then Angle Lake, ending with Lynnwood City Center.
 //
-// Three LEDs for end buffer (yellow).
+// Three LEDs for end buffer (blue).
 //
 // For north and southbound train sections, LEDs alternate between at station
 // (green), and in between stations (yellow). If more than one train is in one
@@ -87,11 +88,13 @@ const SOUTH_TRAIN_INIT_IDX: usize = SOUTH_TRAIN_STAGING_IDX + 1;
 
 const END_BUF_INIT_IDX: usize = SOUTH_TRAIN_INIT_IDX + PIXELS_FOR_STATIONS;
 
+const MAX_LEDS_NEEDED: usize = END_BUF_INIT_IDX + LED_BUFFER_COUNT;
+
 fn prepare_buffer_leds(led_strip: &mut Vec<(u8, u8, u8)>, init_idx: usize, led_val: (u8, u8, u8)) -> usize {
     let mut count_written = 0;
     for i in 0..LED_BUFFER_COUNT {
         let idx = init_idx + i;
-        if led_strip[idx] != (0, 0, 0) {
+        if led_strip[idx] != LED_OFF {
             warn!("multiple trains at index [{}]", idx);
         }
         led_strip[idx] = led_val;
@@ -114,7 +117,7 @@ fn index_trains(led_strip: &mut Vec<(u8, u8, u8)>, trains: Vec<train::Train>) ->
         };
 
         let current_color = led_strip[idx];
-        led_strip[idx] = if idx == NORTH_TRAIN_STAGING_IDX || idx == SOUTH_TRAIN_STAGING_IDX {
+        let final_color = if idx == NORTH_TRAIN_STAGING_IDX || idx == SOUTH_TRAIN_STAGING_IDX {
             STAGING_LED
         } else {
             let mut new_color = train.get_led_rgb();
@@ -125,7 +128,18 @@ fn index_trains(led_strip: &mut Vec<(u8, u8, u8)>, trains: Vec<train::Train>) ->
                 new_color
             }
         };
-        info!("placing ({:?}) train at index [{}] with color {:?}; next stop: {}", train.direction(), idx, led_strip[idx], train.next_stop_name);
+        led_strip[idx] = final_color;
+
+        let colorized_dir = if train.direction() == Direction::N {
+            "(N)".red()
+        } else {
+            "(S)".blue()
+        };
+        info!("placing {} {} at index [{:3}]; next stop: {}", 
+            colorized_dir,
+            "train".truecolor(final_color.0, final_color.1, final_color.2),
+            idx,
+            train.next_stop_name);
     }
 
     info!("{} total trains", total);
@@ -134,6 +148,7 @@ fn index_trains(led_strip: &mut Vec<(u8, u8, u8)>, trains: Vec<train::Train>) ->
 
 #[tokio::main]
 async fn main() -> Result<(), tokio::time::error::Error> {
+    assert!(MAX_LEDS_NEEDED <= MAX_LEDS_FOR_STRIP);
     dotenv().ok();
     simple_logger::init_with_env().unwrap();
 
@@ -175,7 +190,7 @@ async fn main() -> Result<(), tokio::time::error::Error> {
             i += 1;
             let trains_result = data_parser::parse_from_string(&json);
             if let Ok(trains) = trains_result {
-                let mut led_strip: Vec<(u8, u8, u8)> = vec![(0, 0, 0); MAX_LEDS];
+                let mut led_strip: Vec<(u8, u8, u8)> = vec![LED_OFF; MAX_LEDS_NEEDED];
                 let mut count = 0;
 
                 // write initial leds
