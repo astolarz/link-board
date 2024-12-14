@@ -14,20 +14,16 @@ enum DisplayType {
     StringDisplay
 }
 
+/// returns a StripDisplay or StringDisplay, defaulting to StripDisplay
 pub fn get_display() -> Box<dyn LinkBoardDisplay> {
     if let Ok(display_type_string) = dotenvy::var(DISPLAY_TYPE) {
         if let Ok(display_type) = display_type_string.parse::<DisplayType>() {
-            if display_type == DisplayType::StripDisplay {
-                Box::new(StripDisplay::new())
-            } else {
-                Box::new(StringDisplay::new())
+            if display_type == DisplayType::StringDisplay {
+                return Box::new(StringDisplay::new())
             }
-        } else {
-            Box::new(StripDisplay::new())
         }
-    } else {
-        Box::new(StripDisplay::new())
-    }   
+    }
+    Box::new(StripDisplay::new())
 }
 
 #[derive(Debug, PartialEq, Eq)]
