@@ -26,6 +26,9 @@ pub const STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
     "Lynnwood City Center"=> 22
 };
 
+// size of station map * 2 for one LED in between, plus one more for beginning buffer.
+pub const PIXELS_FOR_STATIONS: usize = (STN_NAME_TO_LED_IDX.len() * 2) - 1;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[allow(dead_code)]
 pub enum Direction {
@@ -34,3 +37,6 @@ pub enum Direction {
     E, // for 2 Line
     W, // for 2 Line
 }
+
+pub const LED_OFF: (u8, u8, u8) = (0, 0, 0,);
+pub const STAGING_LED: (u8, u8, u8) = (255, 0, 255);
