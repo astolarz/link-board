@@ -3,6 +3,7 @@ use log::{error, info};
 use dotenvy::{self, dotenv};
 
 mod constants;
+mod led;
 mod strip_display;
 mod string_display;
 mod link_board_display;

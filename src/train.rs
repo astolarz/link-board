@@ -1,8 +1,8 @@
 use log::debug;
-use crate::constants::{Direction, STN_NAME_TO_LED_IDX};
+use crate::{constants::{Direction, STN_NAME_TO_LED_IDX}, led::Led};
 
-const AT_STATION: (u8, u8, u8) = (0, 255, 0);
-const BTW_STATION: (u8, u8, u8) = (100, 100, 0);
+const AT_STATION: (u8, u8, u8) = Led::green().as_tuple();
+const BTW_STATION: (u8, u8, u8) = Led::dull_yellow().as_tuple();
 
 #[derive(Debug, Clone)]
 pub struct Train {

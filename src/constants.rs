@@ -1,5 +1,7 @@
 use phf::phf_map;
 
+use crate::led::Led;
+
 pub const STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
     "Angle Lake" => 0,
     "SeaTac/Airport"=> 1,
@@ -38,5 +40,5 @@ pub enum Direction {
     W, // for 2 Line
 }
 
-pub const LED_OFF: (u8, u8, u8) = (0, 0, 0,);
-pub const STAGING_LED: (u8, u8, u8) = (255, 0, 255);
+pub const LED_OFF: (u8, u8, u8) = Led::off().as_tuple();
+pub const STAGING_LED: (u8, u8, u8) = Led::purple().as_tuple();

@@ -1,11 +1,11 @@
-use crate::{constants::{LED_OFF, PIXELS_FOR_STATIONS}, link_board_display::{index_trains, LinkBoardDisplay}, spi_adapter::{self, spi::SpiAdapter, SpiWriter}, train::Train};
+use crate::{constants::{LED_OFF, PIXELS_FOR_STATIONS}, led::Led, link_board_display::{index_trains, LinkBoardDisplay}, spi_adapter::{self, spi::SpiAdapter, SpiWriter}, train::Train};
 use log::{info, warn};
 
 const MAX_LEDS_FOR_STRIP: usize = 144;
 const LED_BUFFER_COUNT: usize = 3;
-const START_BUF_LED: (u8, u8, u8) = (255, 0, 0);
-const MID_BUF_LED: (u8, u8, u8) = (255, 165, 0);
-const END_BUF_LED: (u8, u8, u8) = (0, 0, 255);
+const START_BUF_LED: (u8, u8, u8) = Led::red().as_tuple();
+const MID_BUF_LED: (u8, u8, u8) = Led::orange().as_tuple();
+const END_BUF_LED: (u8, u8, u8) = Led::blue().as_tuple();
 
 // First three LEDs are start buffer (red).
 //
