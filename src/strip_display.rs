@@ -1,4 +1,10 @@
-use crate::{constants::{LED_OFF, PIXELS_FOR_STATIONS}, led::Led, link_board_display::{index_trains, LinkBoardDisplay}, spi_adapter::{self, spi::SpiAdapter, SpiWriter}, train::Train};
+use crate::{
+    constants::{LED_OFF, PIXELS_FOR_STATIONS},
+    led::Led,
+    link_board_display::{index_trains, LinkBoardDisplay},
+    spi_adapter::{self, spi::SpiAdapter, SpiWriter},
+    train::Train
+};
 use log::{info, warn};
 
 const MAX_LEDS_FOR_STRIP: usize = 144;

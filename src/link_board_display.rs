@@ -1,4 +1,10 @@
-use crate::{constants::{Direction, LED_OFF, STAGING_LED}, led::Led, string_display::StringDisplay, strip_display::StripDisplay, train::Train};
+use crate::{
+    constants::{Direction, LED_OFF, STAGING_LED},
+    led::Led,
+    string_display::StringDisplay,
+    strip_display::StripDisplay,
+    train::Train
+};
 use log::info;
 use colored::Colorize;
 use std::str::FromStr;

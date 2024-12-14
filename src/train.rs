@@ -1,5 +1,8 @@
+use crate::{
+    constants::{Direction, STN_NAME_TO_LED_IDX},
+    led::Led
+};
 use log::debug;
-use crate::{constants::{Direction, STN_NAME_TO_LED_IDX}, led::Led};
 
 const AT_STATION: Led = Led::green();
 const BTW_STATION: Led = Led::dull_yellow();

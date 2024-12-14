@@ -1,9 +1,7 @@
+use crate::{constants::Direction, train};
 use std::collections::HashMap;
 use log::debug;
-
 use serde_json::Value;
-
-use crate::{constants::Direction, train};
 
 const OBA_ENV_VAR: &str = "ONEBUSAWAY_API_KEY";
 const GET_1_LINE_URL: &str = "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/40_100479.json?key=";

@@ -1,6 +1,5 @@
-use phf::phf_map;
-
 use crate::led::Led;
+use phf::phf_map;
 
 pub const STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
     "Angle Lake" => 0,
