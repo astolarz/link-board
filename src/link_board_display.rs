@@ -1,13 +1,16 @@
 use crate::{
     constants::{Direction, LED_OFF, STAGING_LED},
     led::Led,
-    string_display::StringDisplay,
-    strip_display::StripDisplay,
+    link_board_display::string_display::StringDisplay,
+    link_board_display::strip_display::StripDisplay,
     train::Train
 };
 use log::info;
 use colored::Colorize;
 use std::str::FromStr;
+
+mod string_display;
+mod strip_display;
 
 const DISPLAY_TYPE: &str = "LINK_BOARD_DISPLAY_TYPE";
 
