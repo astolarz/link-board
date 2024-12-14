@@ -40,5 +40,5 @@ pub enum Direction {
     W, // for 2 Line
 }
 
-pub const LED_OFF: (u8, u8, u8) = Led::off().as_tuple();
-pub const STAGING_LED: (u8, u8, u8) = Led::purple().as_tuple();
+pub const LED_OFF: Led = Led::off();
+pub const STAGING_LED: Led = Led::purple();

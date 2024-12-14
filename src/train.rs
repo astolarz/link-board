@@ -1,8 +1,8 @@
 use log::debug;
 use crate::{constants::{Direction, STN_NAME_TO_LED_IDX}, led::Led};
 
-const AT_STATION: (u8, u8, u8) = Led::green().as_tuple();
-const BTW_STATION: (u8, u8, u8) = Led::dull_yellow().as_tuple();
+const AT_STATION: Led = Led::green();
+const BTW_STATION: Led = Led::dull_yellow();
 
 #[derive(Debug, Clone)]
 pub struct Train {
@@ -57,7 +57,7 @@ impl Train {
         idx
     }
 
-    pub fn get_led_rgb(&self) -> (u8, u8, u8) {
+    pub fn get_led_rgb(&self) -> Led {
         if self.at_station {
             AT_STATION
         } else {

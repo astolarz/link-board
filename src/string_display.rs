@@ -1,4 +1,4 @@
-use crate::{constants::{LED_OFF, PIXELS_FOR_STATIONS}, link_board_display::{index_trains, LinkBoardDisplay}, spi_adapter::{self, spi::SpiAdapter, SpiWriter}, train::Train};
+use crate::{constants::{LED_OFF, PIXELS_FOR_STATIONS}, led::Led, link_board_display::{index_trains, LinkBoardDisplay}, spi_adapter::{self, spi::SpiAdapter, SpiWriter}, train::Train};
 use log::info;
 
 const NORTH_TRAIN_INIT_IDX: usize = 0;
@@ -25,7 +25,7 @@ impl StringDisplay {
 
 impl LinkBoardDisplay for StringDisplay {
     fn update_trains(&mut self, trains: Vec<Train>) -> Result<(), String> {
-        let mut led_strip: Vec<(u8, u8, u8)> = vec![LED_OFF; MAX_LEDS_NEEDED];
+        let mut led_strip: Vec<Led> = vec![LED_OFF; MAX_LEDS_NEEDED];
         let mut count = 0;
 
         count += index_trains(self, &mut led_strip, trains);

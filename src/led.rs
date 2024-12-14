@@ -1,3 +1,5 @@
+#[derive(Clone, Copy)]
+#[derive(PartialEq)]
 pub struct Led {
     value: (u8, u8, u8)
 }
@@ -13,6 +15,12 @@ impl Led {
 
     pub fn b(&self) -> u8 {
         self.value.2
+    }
+
+    pub fn add_tuple(&mut self, rgb: (u8, u8, u8)) {
+        self.value.0 += rgb.0;
+        self.value.1 += rgb.1;
+        self.value.2 += rgb.2;
     }
 
     pub const fn off() -> Self {

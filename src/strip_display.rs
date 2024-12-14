@@ -3,9 +3,9 @@ use log::{info, warn};
 
 const MAX_LEDS_FOR_STRIP: usize = 144;
 const LED_BUFFER_COUNT: usize = 3;
-const START_BUF_LED: (u8, u8, u8) = Led::red().as_tuple();
-const MID_BUF_LED: (u8, u8, u8) = Led::orange().as_tuple();
-const END_BUF_LED: (u8, u8, u8) = Led::blue().as_tuple();
+const START_BUF_LED: Led = Led::red();
+const MID_BUF_LED: Led = Led::orange();
+const END_BUF_LED: Led = Led::blue();
 
 // First three LEDs are start buffer (red).
 //
@@ -55,7 +55,7 @@ impl StripDisplay {
         }
     }
 
-    fn prepare_buffer_leds(led_strip: &mut Vec<(u8, u8, u8)>, init_idx: usize, led_val: (u8, u8, u8)) -> usize {
+    fn prepare_buffer_leds(led_strip: &mut Vec<Led>, init_idx: usize, led_val: Led) -> usize {
         let mut count_written = 0;
         for i in 0..LED_BUFFER_COUNT {
             let idx = init_idx + i;
@@ -72,7 +72,7 @@ impl StripDisplay {
 
 impl LinkBoardDisplay for StripDisplay {
     fn update_trains(&mut self, trains: Vec<Train>) -> Result<(), String> {
-        let mut led_strip: Vec<(u8, u8, u8)> = vec![LED_OFF; MAX_LEDS_NEEDED];
+        let mut led_strip: Vec<Led> = vec![LED_OFF; MAX_LEDS_NEEDED];
         let mut count = 0;
 
         // write initial leds

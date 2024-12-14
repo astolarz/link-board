@@ -1,4 +1,4 @@
-use crate::{constants::{Direction, LED_OFF, STAGING_LED}, string_display::StringDisplay, strip_display::StripDisplay, train::Train};
+use crate::{constants::{Direction, LED_OFF, STAGING_LED}, led::Led, string_display::StringDisplay, strip_display::StripDisplay, train::Train};
 use log::info;
 use colored::Colorize;
 use std::str::FromStr;
@@ -51,7 +51,7 @@ impl FromStr for DisplayType {
     }
 }
 
-pub fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<(u8, u8, u8)>, trains: Vec<Train>) -> usize {
+pub fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
     let mut total = 0;
 
     for train in trains {
@@ -71,7 +71,7 @@ pub fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<(u8, u8
             if current_color == LED_OFF {
                 new_color
             } else {
-                new_color.2 += 10;
+                new_color.add_tuple((0, 0, 10));
                 new_color
             }
         };
@@ -84,7 +84,7 @@ pub fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<(u8, u8
         };
         info!("placing {} {} at index [{:3}]; next stop: {}", 
             colorized_dir,
-            "train".truecolor(final_color.0, final_color.1, final_color.2),
+            "train".truecolor(final_color.r(), final_color.g(), final_color.b()),
             idx,
             train.next_stop_name);
     }
