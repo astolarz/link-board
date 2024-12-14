@@ -37,12 +37,11 @@ fn parse_1_line_json(json: &Value) -> Result<Vec<train::Train>, serde_json::Erro
     if let Some(trips) = trip_values {
         for trip in trips {
             let id = trip["tripId"].as_str().unwrap();
-            // let next_stop = trip["status"]["nextStop"].as_str().unwrap_or("").to_string();
             let name = stops_to_names.get(&trip["status"]["nextStop"].as_str().unwrap()).unwrap().to_string();
             let closest_stop_time_offset = trip["status"]["closestStopTimeOffset"].as_i64().unwrap();
             let at_station = closest_stop_time_offset == 0;
             if let Some(direction) = parse_trip_direction(&id, &json["data"]["references"]["trips"]) {
-                trains.push(train::Train::new(/*id.to_string(), next_stop,*/ name, direction, at_station));
+                trains.push(train::Train::new(name, direction, at_station));
             } else {
                 debug!("id: {}, json: {}", id, json["data"]["references"]["trips"]);
                 panic!("Couldn't parse direction");

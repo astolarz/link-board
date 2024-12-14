@@ -52,12 +52,8 @@ pub struct StripDisplay {
     adapter: SpiAdapter
 }
 
-pub fn get_strip_display() -> StripDisplay {
-    StripDisplay::new()
-}
-
 impl StripDisplay {
-    fn new() -> Self {
+    pub fn new() -> Self {
         assert!(MAX_LEDS_NEEDED <= MAX_LEDS_FOR_STRIP);
         Self {
             adapter: spi_adapter::get_adapter()

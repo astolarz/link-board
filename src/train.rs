@@ -6,24 +6,17 @@ const BTW_STATION: (u8, u8, u8) = (100, 100, 0);
 
 #[derive(Debug, Clone)]
 pub struct Train {
-    // id: String,
-    // next_stop_id: String,
     pub next_stop_name: String,
-    // time_until: std:time::duration,
     direction: Direction,
     pub at_station: bool,
 }
 
 impl Train {
     pub fn new(
-        // id: String,
-        // next_stop_id: String,
         next_stop_name: String,
         direction: Direction,
         at_station: bool) -> Self {
         Self {
-            // id,
-            // next_stop_id,
             next_stop_name,
             direction,
             at_station,
@@ -50,7 +43,11 @@ impl Train {
             raw_idx * 2
         } else {
             if self.direction == Direction::N {
-                (raw_idx * 2) - 1
+                if raw_idx > 0 {
+                    (raw_idx * 2) - 1
+                } else {
+                    raw_idx * 2
+                }
             } else {
                 (raw_idx * 2) + 1
             }

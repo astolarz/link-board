@@ -1,5 +1,4 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
-use link_board_display::LinkBoardDisplay;
 use log::{error, info};
 use dotenvy::{self, dotenv};
 
