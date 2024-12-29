@@ -30,7 +30,7 @@ async fn render_trains(client: &reqwest::Client, display: &mut Box<dyn LinkBoard
             }
         },
         Err(e) => {
-            error!("Failed to get 1 Line data: {:?}", e);
+            error!("Failed to get 1 Line data: {e}");
         }
     }
 }
