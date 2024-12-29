@@ -56,16 +56,15 @@ async fn main() -> Result<(), tokio::time::error::Error> {
     let mut i = 0;
     let mut wait_time = Instant::now() - Duration::new(15, 0);
     while running.load(Ordering::SeqCst) {
+        let loop_time = Instant::now();
+
         if wait_time.elapsed().as_secs() < 15 {
             continue;
         } else {
             wait_time = Instant::now();
         }
 
-        let loop_time = Instant::now();
-
         info!("{:?} secs since main loop started.", prog_start.elapsed().as_secs());
-
         render_trains(&client, &mut display, &mut i).await;
         info!("i_{} going to sleep after {} seconds", i, loop_time.elapsed().as_secs());
     }
