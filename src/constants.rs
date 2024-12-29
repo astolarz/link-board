@@ -28,7 +28,9 @@ pub const STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
 };
 
 // size of station map * 2 for one LED in between, plus one more for beginning buffer.
-pub const PIXELS_FOR_STATIONS: usize = (STN_NAME_TO_LED_IDX.len() * 2) - 1;
+// pub const PIXELS_FOR_STATIONS_ONLY: usize = STN_NAME_TO_LED_IDX.len();
+pub const PIXELS_FOR_STATIONS_EXPANDED: usize = (STN_NAME_TO_LED_IDX.len() * 2) - 1;
+pub const PIXELS_FOR_STATIONS: usize = PIXELS_FOR_STATIONS_EXPANDED;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[allow(dead_code)]

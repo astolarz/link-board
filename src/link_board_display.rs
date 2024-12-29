@@ -1,5 +1,6 @@
 use crate::{
     constants::{Direction, LED_OFF, STAGING_LED},
+    env,
     led::Led,
     link_board_display::string_display::StringDisplay,
     link_board_display::strip_display::StripDisplay,
@@ -65,6 +66,9 @@ pub fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, t
 
     for train in trains {
         total += 1;
+        if env::stations_only() && !train.at_station {
+            continue;
+        }
 
         let idx = if train.direction() == Direction::N {
             display.get_north_init_idx() + train.get_relative_idx()
@@ -80,7 +84,7 @@ pub fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, t
             if current_color == LED_OFF {
                 new_color
             } else {
-                new_color.add_tuple((0, 0, 10));
+                new_color.add_tuple((0, 0, 100));
                 new_color
             }
         };

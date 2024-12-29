@@ -1,8 +1,9 @@
 use crate::{
-    constants::{Direction, STN_NAME_TO_LED_IDX},
+    constants::{Direction, LED_OFF, STN_NAME_TO_LED_IDX},
+    env,
     led::Led
 };
-use log::debug;
+use log::{debug, warn};
 
 const AT_STATION: Led = Led::green();
 const BTW_STATION: Led = Led::dull_yellow();
@@ -26,6 +27,7 @@ impl Train {
         }
     }
 
+    #[allow(dead_code)]
     pub fn add_dir(&mut self, direction: Direction) -> &mut Self {
         self.direction = direction;
         self
@@ -42,17 +44,22 @@ impl Train {
         // TODO: figure out logic for not at station, but next station is max or whatever.
         // will probably also need to adjust index logic in main.rs
         // maybe just actually reverse LEDs for southbound?
-        let idx = if self.at_station {
-            raw_idx * 2
+        let idx = if env::stations_only() {
+            raw_idx
         } else {
-            if self.direction == Direction::N {
-                if raw_idx > 0 {
-                    (raw_idx * 2) - 1
-                } else {
-                    raw_idx * 2
-                }
+            if self.at_station {
+                raw_idx * 2
             } else {
-                (raw_idx * 2) + 1
+                if self.direction == Direction::N {
+                    if raw_idx > 0 {
+                        (raw_idx * 2) - 1
+                    } else {
+                        warn!("Northbound train at Angle Lake but not at station?");
+                        raw_idx * 2
+                    }
+                } else {
+                    (raw_idx * 2) + 1
+                }
             }
         };
         debug!("idx is {:?} because train.at_station is {}, heading ", idx, self.at_station);
@@ -64,7 +71,11 @@ impl Train {
         if self.at_station {
             AT_STATION
         } else {
-            BTW_STATION
+            if env::stations_only() {
+                LED_OFF
+            } else {
+                BTW_STATION
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
+use link_board_display::LinkBoardDisplay;
 use log::{error, info};
 use dotenvy::{self, dotenv};
 
@@ -8,6 +9,31 @@ mod link_board_display;
 mod train;
 mod data_parser;
 mod spi_adapter;
+mod env;
+
+async fn render_trains(client: &reqwest::Client, display: &mut Box<dyn LinkBoardDisplay>, i: &mut i32) {
+    match data_parser::get_one_line(&client).await {
+        Ok(json) => {
+            *i += 1;
+            match data_parser::parse_from_string(&json) {
+                Ok(trains) => {
+                    match display.update_trains(trains) {
+                        Err(e) => {
+                            error!("Failed to update trains: {e}");
+                        },
+                        _ => {}
+                    }
+                },
+                Err(e) => {
+                    error!("Failed to parse 1 Line JSON: {e}");
+                }
+            }
+        },
+        Err(e) => {
+            error!("Failed to get 1 Line data: {:?}", e);
+        }
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<(), tokio::time::error::Error> {
@@ -40,22 +66,7 @@ async fn main() -> Result<(), tokio::time::error::Error> {
 
         info!("{:?} secs since main loop started.", prog_start.elapsed().as_secs());
 
-        let res = data_parser::get_one_line(&client).await;
-        if res.is_err() {
-            error!("Failed to get 1 Line data: {:?}", res);
-        }
-        if let Ok(json) = res {
-            info!("it_{}: get_one_line took {} seconds", i,  loop_time.elapsed().as_secs());
-            i += 1;
-            let trains_result = data_parser::parse_from_string(&json);
-            if let Ok(trains) = trains_result {
-                display.update_trains(trains).unwrap();
-            } else {
-                error!("json parse error 2")
-            }
-        } else {
-            error!("json parse error 1");
-        }
+        render_trains(&client, &mut display, &mut i).await;
         info!("i_{} going to sleep after {} seconds", i, loop_time.elapsed().as_secs());
     }
 

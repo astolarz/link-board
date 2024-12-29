@@ -1,28 +1,21 @@
-use crate::{constants::Direction, train};
-use std::collections::HashMap;
-use log::debug;
+use crate::{constants::Direction, env, train};
+use std::{collections::HashMap, time::Instant};
+use log::{debug, info};
 use serde_json::Value;
 
-const OBA_ENV_VAR: &str = "ONEBUSAWAY_API_KEY";
 const GET_1_LINE_URL: &str = "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/40_100479.json?key=";
 
-fn api_key() -> String {
-    let key = dotenvy::var(OBA_ENV_VAR);
-    if key.is_err() {
-        panic!("Failed to get API key!");
-    }
-    key.unwrap()
-}
-
 pub async fn get_one_line(client: &reqwest::Client) -> Result<String, reqwest::Error> {
-    let url_with_key = format!("{}{}", GET_1_LINE_URL, api_key());
+    let url_with_key = format!("{}{}", GET_1_LINE_URL, env::api_key());
     debug!("{}", url_with_key);
+    let get_time = Instant::now();
     let result = client.get(url_with_key)
         .send()
         .await?
         .text()
         .await?;
     
+    info!("get_one_line took {} seconds", get_time.elapsed().as_secs());
     Ok(result)
 }
 

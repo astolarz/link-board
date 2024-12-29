@@ -17,10 +17,15 @@ impl Led {
         self.value.2
     }
 
+    #[allow(dead_code)]
+    pub fn eq(&self, other: &Self) -> bool {
+        self.value == other.value
+    }
+
     pub fn add_tuple(&mut self, rgb: (u8, u8, u8)) {
-        self.value.0 += rgb.0;
-        self.value.1 += rgb.1;
-        self.value.2 += rgb.2;
+        self.value.0 = self.value.0.saturating_add(rgb.0);
+        self.value.1 = self.value.1.saturating_add(rgb.1);
+        self.value.2 = self.value.2.saturating_add(rgb.2);
     }
 
     pub const fn off() -> Self {
@@ -65,6 +70,7 @@ impl Led {
         }
     }
 
+    #[allow(dead_code)]
     pub const fn as_tuple(&self) -> (u8, u8, u8) {
         self.value
     }

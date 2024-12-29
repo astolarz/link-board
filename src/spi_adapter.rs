@@ -46,11 +46,8 @@ pub mod spi {
         }
 
         fn clear(&mut self, num_to_clear: usize) -> Result<(), String> {
-            let mut spi_encoded_rgb_bits = vec![];
-            for _ in 0..num_to_clear {
-                spi_encoded_rgb_bits.extend_from_slice(&encode_rgb(0, 0, 0));
-            }
-            self.adapter.write_encoded_rgb(&spi_encoded_rgb_bits)
+            self.adapter.clear(num_to_clear);
+            Ok(())
         }
     }
 }
