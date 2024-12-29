@@ -26,6 +26,7 @@ pub fn stations_only() -> bool {
 #[allow(dead_code)]
 pub fn px_for_stns() -> usize {
     constants::PIXELS_FOR_STATIONS
+    // TODO: figure out how to make these const/static/or whatever the rustic way is
     // if stations_only() {
     //     constants::PIXELS_FOR_STATIONS_ONLY
     // } else {
