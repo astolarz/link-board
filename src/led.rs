@@ -1,5 +1,4 @@
-#[derive(Clone, Copy)]
-#[derive(PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Led {
     value: (u8, u8, u8)
 }
