@@ -30,18 +30,6 @@ enum DisplayType {
     StringDisplay
 }
 
-/// returns a StripDisplay or StringDisplay, defaulting to StripDisplay
-pub fn get_display() -> Box<dyn LinkBoardDisplay> {
-    if let Ok(display_type_string) = dotenvy::var(DISPLAY_TYPE) {
-        if let Ok(display_type) = display_type_string.parse::<DisplayType>() {
-            if display_type == DisplayType::StringDisplay {
-                return Box::new(StringDisplay::new())
-            }
-        }
-    }
-    Box::new(StripDisplay::new())
-}
-
 #[derive(Debug, PartialEq, Eq)]
 struct ParseDisplayTypeErr;
 
@@ -59,6 +47,20 @@ impl FromStr for DisplayType {
             Ok(DisplayType::StripDisplay)
         }
     }
+}
+
+/// returns a StripDisplay or StringDisplay, defaulting to StripDisplay
+pub fn get_display() -> Box<dyn LinkBoardDisplay> {
+    if let Ok(display_type_string) = dotenvy::var(DISPLAY_TYPE) {
+        if let Ok(display_type) = display_type_string.parse::<DisplayType>() {
+            return match display_type {
+                DisplayType::StripDisplay => Box::new(StripDisplay::new()),
+                DisplayType::StringDisplay => Box::new(StringDisplay::new()),
+            }
+        }
+    }
+    // default to StripDisplay if there are any errors
+    Box::new(StripDisplay::new())
 }
 
 pub fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
