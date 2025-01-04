@@ -2,8 +2,8 @@ use crate::{
     constants::{Direction, LED_OFF, STAGING_LED},
     env,
     led::Led,
-    link_board_display::string_display::StringDisplay,
-    link_board_display::strip_display::StripDisplay,
+    display::string_display::StringDisplay,
+    display::strip_display::StripDisplay,
     train::Train
 };
 use log::info;

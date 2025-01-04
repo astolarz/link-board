@@ -1,11 +1,11 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
-use link_board_display::LinkBoardDisplay;
+use display::LinkBoardDisplay;
 use log::{error, info};
 use dotenvy::{self, dotenv};
 
 mod constants;
 mod led;
-mod link_board_display;
+mod display;
 mod train;
 mod data_parser;
 mod spi_adapter;
@@ -43,7 +43,7 @@ async fn main() -> Result<(), tokio::time::error::Error> {
     let prog_start = Instant::now();
 
     let client = reqwest::Client::new();
-    let mut display = link_board_display::get_display();
+    let mut display = display::get_display();
 
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
