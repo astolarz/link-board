@@ -60,20 +60,6 @@ impl StripDisplay {
             adapter: spi_adapter::get_adapter()
         }
     }
-
-    fn prepare_buffer_leds(led_strip: &mut Vec<Led>, init_idx: usize, led_val: Led) -> usize {
-        let mut count_written = 0;
-        for i in 0..LED_BUFFER_COUNT {
-            let idx = init_idx + i;
-            if led_strip[idx] != LED_OFF {
-                warn!("multiple trains at index [{}]", idx);
-            }
-            led_strip[idx] = led_val;
-            info!("placing buffer at index [{}]", idx);
-            count_written += 1;
-        }
-        count_written
-    }
 }
 
 impl LinkBoardDisplay for StripDisplay {
@@ -83,17 +69,17 @@ impl LinkBoardDisplay for StripDisplay {
 
         // write initial leds
         info!("START BUFFER");
-        count += StripDisplay::prepare_buffer_leds(&mut led_strip, START_BUF_INIT_IDX, START_BUF_LED);
+        count += prepare_buffer_leds(&mut led_strip, START_BUF_INIT_IDX, START_BUF_LED);
 
         count += index_trains(self, &mut led_strip, trains);
 
         // write mid buffer LEDs
         info!("MID BUFFER");
-        count += StripDisplay::prepare_buffer_leds(&mut led_strip, MID_BUF_INIT_IDX, MID_BUF_LED);
+        count += prepare_buffer_leds(&mut led_strip, MID_BUF_INIT_IDX, MID_BUF_LED);
 
         // write end buffer LEDs
         info!("END BUFFER");
-        count += StripDisplay::prepare_buffer_leds(&mut led_strip, END_BUF_INIT_IDX, END_BUF_LED);
+        count += prepare_buffer_leds(&mut led_strip, END_BUF_INIT_IDX, END_BUF_LED);
         info!("expecting {} leds", count);
         
         self.adapter.write_rgb(led_strip)
@@ -118,4 +104,18 @@ impl LinkBoardDisplay for StripDisplay {
     fn get_south_staging_idx(&self) -> usize {
         SOUTH_TRAIN_STAGING_IDX
     }
+}
+
+fn prepare_buffer_leds(led_strip: &mut Vec<Led>, init_idx: usize, led_val: Led) -> usize {
+    let mut count_written = 0;
+    for i in 0..LED_BUFFER_COUNT {
+        let idx = init_idx + i;
+        if led_strip[idx] != LED_OFF {
+            warn!("multiple trains at index [{}]", idx);
+        }
+        led_strip[idx] = led_val;
+        info!("placing buffer at index [{}]", idx);
+        count_written += 1;
+    }
+    count_written
 }
