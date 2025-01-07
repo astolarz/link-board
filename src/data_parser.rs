@@ -1,6 +1,6 @@
-use crate::{constants::Direction, env, error::Error, train};
+use crate::{constants::Direction, env, error::{Error, TripParseErr}, train};
 use std::{collections::HashMap, time::Instant};
-use log::{debug, info};
+use log::{debug, info, warn};
 use serde_json::Value;
 
 const GET_1_LINE_URL: &str = "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/40_100479.json?key=";
@@ -10,7 +10,7 @@ pub async fn get_one_line_trains(client: &reqwest::Client) -> Result<Vec<train::
         Ok(json_string) => {
             match parse_1_line_json(&json_string) {
                 Ok(trains) => Ok(trains),
-                Err(e) => Err(Error::json_error(e)),
+                Err(e) => Err(e),
             }
         },
         Err(e) => {
@@ -33,29 +33,48 @@ async fn get_one_line(client: &reqwest::Client) -> Result<String, reqwest::Error
     Ok(result)
 }
 
-fn parse_1_line_json(json_string: &String) -> Result<Vec<train::Train>, serde_json::Error> {
-    let json = serde_json::from_str::<Value>(json_string)?;
-    let references = &json["data"]["references"];
+fn parse_1_line_json(json_string: &String) -> Result<Vec<train::Train>, Error> {
+    let json = serde_json::from_str::<Value>(json_string).map_err(|e| Error::json_error(e))?;
+    let json_data = &json["data"];
+    let references = &json_data["references"];
     let stops_to_names = parse_stop_names(&references["stops"]);
 
-    let trip_values = json["data"]["list"].as_array();
+    let trip_values = json_data["list"].as_array();
     let mut trains = vec![];
+
     if let Some(trips) = trip_values {
         for trip in trips {
-            let id = trip["tripId"].as_str().unwrap();
-            let name = stops_to_names.get(&trip["status"]["nextStop"].as_str().unwrap()).unwrap().to_string();
-            let closest_stop_time_offset = trip["status"]["closestStopTimeOffset"].as_i64().unwrap();
-            let at_station = closest_stop_time_offset == 0;
-            if let Some(direction) = parse_trip_direction(&id, &json["data"]["references"]["trips"]) {
-                trains.push(train::Train::new(name, direction, at_station));
-            } else {
-                debug!("id: {}, json: {}", id, json["data"]["references"]["trips"]);
-                panic!("Couldn't parse direction");
-            }
+            match parse_trip(trip, &stops_to_names, references) {
+                Ok(train) => trains.push(train),
+                Err(_e) => {}
+            };
         }
     }
 
     Ok(trains)
+}
+
+fn parse_trip(trip: &Value, stops_to_names: &HashMap<&str, &str>, references: &Value) -> Result<train::Train, Error> {
+    let id = trip["tripId"].as_str()
+        .ok_or_else(|| Error::trip_parse_error(TripParseErr::Id))?;
+
+    let trip_status = &trip["status"];
+
+    let next_stop = trip_status["nextStop"].as_str()
+        .ok_or_else(|| Error::trip_parse_error(TripParseErr::NextStop))?;
+
+    let name = stops_to_names.get(&next_stop)
+        .ok_or_else(|| Error::trip_parse_error(TripParseErr::NextStop))?.to_string();
+
+    let closest_stop_time_offset = trip_status["closestStopTimeOffset"].as_i64()
+        .ok_or_else(|| Error::trip_parse_error(TripParseErr::ClosestStopTimeOffset))?;
+
+    let at_station = closest_stop_time_offset == 0;
+
+    match parse_trip_direction(&id, &references["trips"]) {
+        Some(direction) => Ok(train::Train::new(name, direction, at_station)),
+        None => Err(Error::trip_parse_error(TripParseErr::Direction)),
+    }
 }
 
 // stop ID to stop name
@@ -64,7 +83,14 @@ fn parse_stop_names(json: &Value) -> HashMap<&str, &str> {
 
     if let Some(stops) = json.as_array() {
         for stop in stops {
-            stop_map.insert(stop["id"].as_str().unwrap(), stop["name"].as_str().unwrap());
+            let stop_id = stop["id"].as_str();
+            let stop_name = stop["name"].as_str();
+
+            if stop_id.is_some() && stop_name.is_some() {
+                stop_map.insert(stop_id.unwrap(), stop_name.unwrap());
+            } else {
+                warn!("invalid stop id ({stop_id:?}) or name ({stop_name:?})");
+            }
         }
     }
 
@@ -74,20 +100,28 @@ fn parse_stop_names(json: &Value) -> HashMap<&str, &str> {
 fn parse_trip_direction(trip_id: &str, trips_json: &Value) -> Option<Direction> {
     if let Some(trips) = trips_json.as_array() {
         for trip in trips {
-            let tmp_trip_id = trip["id"].as_str().unwrap();
-
-            if trip_id == tmp_trip_id {
-                debug!("trip: {:?}", trip);
-                if trip["directionId"].as_str().unwrap() == "0" {
-                    return Some(Direction::S);
-                } else if trip["directionId"].as_str().unwrap() == "1" {
-                    return Some(Direction::N);
-                } else {
-                    debug!("trip matched, direction failed.");
+            if let Some(tmp_trip_id) = trip["id"].as_str() {
+                if trip_id == tmp_trip_id {
+                    debug!("trip: {:?}", trip);
+                    
+                    return dir_id_to_direction(trip["directionId"].as_str());
                 }
+            } else {
+                warn!("invalid trip id");
             }
         }
     }
-    debug!("id: {trip_id}");
+    warn!("no trips in trips_json");
     None
+}
+
+fn dir_id_to_direction(dir_id: Option<&str>) -> Option<Direction> {
+    match dir_id {
+        Some("0") => Some(Direction::S),
+        Some("1") => Some(Direction::N),
+        _ => {
+            warn!("invalid directionId");
+            None
+        },
+    }
 }
