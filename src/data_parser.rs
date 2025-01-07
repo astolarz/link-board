@@ -19,7 +19,8 @@ pub async fn get_one_line(client: &reqwest::Client) -> Result<String, reqwest::E
     Ok(result)
 }
 
-fn parse_1_line_json(json: &Value) -> Result<Vec<train::Train>, serde_json::Error> {
+pub fn parse_1_line_json(json_string: &String) -> Result<Vec<train::Train>, serde_json::Error> {
+    let json = serde_json::from_str::<Value>(json_string)?;
     let references = &json["data"]["references"];
     let stops_to_names = parse_stop_names(&references["stops"]);
 
@@ -75,13 +76,4 @@ fn parse_trip_direction(trip_id: &str, trips_json: &Value) -> Option<Direction> 
     }
     debug!("id: {trip_id}");
     None
-}
-
-pub fn parse(json: &Value) -> Result<Vec<train::Train>, serde_json::Error> {
-    Ok(parse_1_line_json(&json)?)
-}
-
-pub fn parse_from_string(json: &String) -> Result<Vec<train::Train>, serde_json::Error> {
-    let json_val = serde_json::from_str::<Value>(json)?;
-    parse(&json_val)
 }

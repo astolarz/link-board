@@ -1,12 +1,12 @@
 use crate::{
     constants::{Direction, LED_OFF, STAGING_LED},
+    data_parser,
+    display::{string_display::StringDisplay, strip_display::StripDisplay},
     env,
     led::Led,
-    display::string_display::StringDisplay,
-    display::strip_display::StripDisplay,
     train::Train
 };
-use log::info;
+use log::{error, info};
 use colored::Colorize;
 use std::str::FromStr;
 
@@ -63,7 +63,30 @@ pub fn get_display() -> Box<dyn LinkBoardDisplay> {
     Box::new(StripDisplay::new())
 }
 
-pub fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
+pub async fn render_trains(client: &reqwest::Client, display: &mut Box<dyn LinkBoardDisplay>) {
+    match data_parser::get_one_line(&client).await {
+        Ok(json) => {
+            match data_parser::parse_1_line_json(&json) {
+                Ok(trains) => {
+                    match display.update_trains(trains) {
+                        Err(e) => {
+                            error!("Failed to update trains: {e}");
+                        },
+                        _ => {}
+                    }
+                },
+                Err(e) => {
+                    error!("Failed to parse 1 Line JSON: {e}");
+                }
+            }
+        },
+        Err(e) => {
+            error!("Failed to get 1 Line data: {e}");
+        }
+    }
+}
+
+fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
     let mut total = 0;
 
     for train in trains {
