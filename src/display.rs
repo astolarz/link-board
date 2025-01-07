@@ -64,24 +64,17 @@ pub fn get_display() -> Box<dyn LinkBoardDisplay> {
 }
 
 pub async fn render_trains(client: &reqwest::Client, display: &mut Box<dyn LinkBoardDisplay>) {
-    match data_parser::get_one_line(&client).await {
-        Ok(json) => {
-            match data_parser::parse_1_line_json(&json) {
-                Ok(trains) => {
-                    match display.update_trains(trains) {
-                        Err(e) => {
-                            error!("Failed to update trains: {e}");
-                        },
-                        _ => {}
-                    }
-                },
+    match data_parser::get_one_line_trains(client).await {
+        Ok(trains) => {
+            match display.update_trains(trains) {
                 Err(e) => {
-                    error!("Failed to parse 1 Line JSON: {e}");
-                }
+                    error!("Failed to update trains: {e}");
+                },
+                _ => {}
             }
         },
         Err(e) => {
-            error!("Failed to get 1 Line data: {e}");
+            error!("failed to get trains: {e}");
         }
     }
 }

@@ -2,6 +2,7 @@ use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}
 use log::info;
 use dotenvy::{self, dotenv};
 
+mod error;
 mod constants;
 mod led;
 mod display;

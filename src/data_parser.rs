@@ -1,11 +1,25 @@
-use crate::{constants::Direction, env, train};
+use crate::{constants::Direction, env, error::Error, train};
 use std::{collections::HashMap, time::Instant};
 use log::{debug, info};
 use serde_json::Value;
 
 const GET_1_LINE_URL: &str = "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/40_100479.json?key=";
 
-pub async fn get_one_line(client: &reqwest::Client) -> Result<String, reqwest::Error> {
+pub async fn get_one_line_trains(client: &reqwest::Client) -> Result<Vec<train::Train>, Error> {
+    match get_one_line(&client).await {
+        Ok(json_string) => {
+            match parse_1_line_json(&json_string) {
+                Ok(trains) => Ok(trains),
+                Err(e) => Err(Error::json_error(e)),
+            }
+        },
+        Err(e) => {
+            Err(Error::client_error(e))
+        },
+    }
+}
+
+async fn get_one_line(client: &reqwest::Client) -> Result<String, reqwest::Error> {
     let url_with_key = format!("{}{}", GET_1_LINE_URL, env::api_key());
     debug!("{}", url_with_key);
     let get_time = Instant::now();
@@ -19,7 +33,7 @@ pub async fn get_one_line(client: &reqwest::Client) -> Result<String, reqwest::E
     Ok(result)
 }
 
-pub fn parse_1_line_json(json_string: &String) -> Result<Vec<train::Train>, serde_json::Error> {
+fn parse_1_line_json(json_string: &String) -> Result<Vec<train::Train>, serde_json::Error> {
     let json = serde_json::from_str::<Value>(json_string)?;
     let references = &json["data"]["references"];
     let stops_to_names = parse_stop_names(&references["stops"]);
