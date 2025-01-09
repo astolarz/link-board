@@ -13,8 +13,6 @@ use std::str::FromStr;
 mod string_display;
 mod strip_display;
 
-const DISPLAY_TYPE: &str = "LINK_BOARD_DISPLAY_TYPE";
-
 pub trait LinkBoardDisplay {
     fn update_trains(&mut self, trains: Vec<Train>) -> Result<(), String>;
     fn clear_trains(&mut self) -> Result<(), String>;
@@ -37,30 +35,25 @@ impl FromStr for DisplayType {
     type Err = ParseDisplayTypeErr;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Ok(parsed) = s.parse::<u8>() {
-            match parsed {
-                // 0 is StripDisplay
-                1 => Ok(DisplayType::StringDisplay),
-                _ => Ok(DisplayType::StripDisplay)
-            }
-        } else {
-            Ok(DisplayType::StripDisplay)
+        let parsed = s.parse::<u8>().unwrap_or(0); 
+        match parsed {
+            // 0 is StripDisplay
+            1 => Ok(DisplayType::StringDisplay),
+            _ => Ok(DisplayType::StripDisplay)
         }
     }
 }
 
+fn get_display_type() -> DisplayType {
+    env::display_type_string().parse::<DisplayType>().unwrap_or(DisplayType::StripDisplay)
+}
+
 /// returns a StripDisplay or StringDisplay, defaulting to StripDisplay
 pub fn get_display() -> Box<dyn LinkBoardDisplay> {
-    if let Ok(display_type_string) = dotenvy::var(DISPLAY_TYPE) {
-        if let Ok(display_type) = display_type_string.parse::<DisplayType>() {
-            return match display_type {
-                DisplayType::StripDisplay => Box::new(StripDisplay::new()),
-                DisplayType::StringDisplay => Box::new(StringDisplay::new()),
-            }
-        }
+    match get_display_type() {
+        DisplayType::StripDisplay => Box::new(StripDisplay::new()),
+        DisplayType::StringDisplay => Box::new(StringDisplay::new()),
     }
-    // default to StripDisplay if there are any errors
-    Box::new(StripDisplay::new())
 }
 
 pub async fn render_trains(client: &reqwest::Client, display: &mut Box<dyn LinkBoardDisplay>) {

@@ -1,7 +1,6 @@
-use crate::constants;
-
 const OBA_ENV_VAR: &str = "ONEBUSAWAY_API_KEY";
 const STATIONS_ONLY_VAR: &str = "STATIONS_ONLY";
+const DISPLAY_TYPE_VAR: &str = "LINK_BOARD_DISPLAY_TYPE";
 
 pub fn api_key() -> String {
     let key = dotenvy::var(OBA_ENV_VAR);
@@ -12,24 +11,15 @@ pub fn api_key() -> String {
 }
 
 pub fn stations_only() -> bool {
-    if let Ok(stations_only) = dotenvy::var(STATIONS_ONLY_VAR) {
-        if stations_only == "true" {
-            true
-        } else {
-            false
-        }
-    } else {
-        false
+    match dotenvy::var(STATIONS_ONLY_VAR) {
+        Ok(stations_only) => stations_only.parse().unwrap_or(false),
+        Err(_) => false,
     }
 }
 
-#[allow(dead_code)]
-pub fn px_for_stns() -> usize {
-    constants::PIXELS_FOR_STATIONS
-    // TODO: figure out how to make these const/static/or whatever the rustic way is
-    // if stations_only() {
-    //     constants::PIXELS_FOR_STATIONS_ONLY
-    // } else {
-    //     constants::PIXELS_FOR_STATIONS_EXPANDED
-    // }
+pub fn display_type_string() -> String {
+    match dotenvy::var(DISPLAY_TYPE_VAR) {
+        Ok(disp_type_string) => disp_type_string,
+        Err(_) => String::from("0"),
+    }
 }
