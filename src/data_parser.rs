@@ -1,12 +1,13 @@
-use crate::{constants::Direction, env, error::{Error, TripParseErr}, train};
+use crate::{constants::{Route, Terminus}, env, error::{Error, TripParseErr}, train};
 use std::{collections::HashMap, time::Instant};
 use log::{debug, info, warn};
 use serde_json::Value;
 
-const GET_1_LINE_URL: &str = "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/40_100479.json?key=";
+const LINE_1_ROUTE_ID: &str = "40_100479";
+const LINE_2_ROUTE_ID: &str = "40_2LINE";
 
-pub async fn get_one_line_trains(client: &reqwest::Client) -> Result<Vec<train::Train>, Error> {
-    match get_one_line(&client).await {
+pub async fn get_trains_for_route(client: &reqwest::Client, route: Route) -> Result<Vec<train::Train>, Error> {
+    match get_route_json_string(&client, route).await {
         Ok(json_string) => {
             match parse_1_line_json(&json_string) {
                 Ok(trains) => Ok(trains),
@@ -19,8 +20,16 @@ pub async fn get_one_line_trains(client: &reqwest::Client) -> Result<Vec<train::
     }
 }
 
-async fn get_one_line(client: &reqwest::Client) -> Result<String, reqwest::Error> {
-    let url_with_key = format!("{}{}", GET_1_LINE_URL, env::api_key());
+async fn get_route_json_string(client: &reqwest::Client, route: Route) -> Result<String, reqwest::Error> {
+    let route_id = match route {
+        Route::Line1 => LINE_1_ROUTE_ID,
+        Route::Line2 => LINE_2_ROUTE_ID,
+    };
+    let url_with_key = format!(
+        "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/{}.json?key={}",
+        route_id,
+        env::api_key()
+    );
     debug!("{}", url_with_key);
     let get_time = Instant::now();
     let result = client.get(url_with_key)
@@ -97,7 +106,7 @@ fn parse_stop_names(json: &Value) -> HashMap<&str, &str> {
     stop_map
 }
 
-fn parse_trip_direction(trip_id: &str, trips_json: &Value) -> Option<Direction> {
+fn parse_trip_direction(trip_id: &str, trips_json: &Value) -> Option<Terminus> {
     if let Some(trips) = trips_json.as_array() {
         for trip in trips {
             if let Some(tmp_trip_id) = trip["id"].as_str() {
@@ -115,10 +124,11 @@ fn parse_trip_direction(trip_id: &str, trips_json: &Value) -> Option<Direction> 
     None
 }
 
-fn dir_id_to_direction(dir_id: Option<&str>) -> Option<Direction> {
+fn dir_id_to_direction(dir_id: Option<&str>) -> Option<Terminus> {
+    // directionId can only be 0 or 1 per GTFS docs
     match dir_id {
-        Some("0") => Some(Direction::S),
-        Some("1") => Some(Direction::N),
+        Some("0") => Some(Terminus::AngleLake),
+        Some("1") => Some(Terminus::LynnwoodCC),
         _ => {
             warn!("invalid directionId");
             None

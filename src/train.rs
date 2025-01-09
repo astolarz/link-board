@@ -1,5 +1,5 @@
 use crate::{
-    constants::{Direction, LED_OFF, STN_NAME_TO_LED_IDX},
+    constants::{Terminus, LED_OFF, STN_NAME_TO_LED_IDX},
     env,
     led::Led
 };
@@ -11,14 +11,14 @@ const BTW_STATION: Led = Led::dull_yellow();
 #[derive(Debug, Clone)]
 pub struct Train {
     pub next_stop_name: String,
-    direction: Direction,
+    direction: Terminus,
     pub at_station: bool,
 }
 
 impl Train {
     pub fn new(
         next_stop_name: String,
-        direction: Direction,
+        direction: Terminus,
         at_station: bool) -> Self {
         Self {
             next_stop_name,
@@ -28,12 +28,12 @@ impl Train {
     }
 
     #[allow(dead_code)]
-    pub fn add_dir(&mut self, direction: Direction) -> &mut Self {
+    pub fn add_dir(&mut self, direction: Terminus) -> &mut Self {
         self.direction = direction;
         self
     }
 
-    pub fn direction(&self) -> Direction {
+    pub fn direction(&self) -> Terminus {
         self.direction
     }
 
@@ -50,7 +50,7 @@ impl Train {
             if self.at_station {
                 raw_idx * 2
             } else {
-                if self.direction == Direction::N {
+                if self.direction == Terminus::LynnwoodCC {
                     if raw_idx > 0 {
                         (raw_idx * 2) - 1
                     } else {

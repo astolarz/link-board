@@ -1,5 +1,5 @@
 use crate::{
-    constants::{Direction, LED_OFF, STAGING_LED},
+    constants::{Route, Terminus, LED_OFF, STAGING_LED},
     data_parser,
     display::{string_display::StringDisplay, strip_display::StripDisplay},
     env,
@@ -57,7 +57,7 @@ pub fn get_display() -> Box<dyn LinkBoardDisplay> {
 }
 
 pub async fn render_trains(client: &reqwest::Client, display: &mut Box<dyn LinkBoardDisplay>) {
-    match data_parser::get_one_line_trains(client).await {
+    match data_parser::get_trains_for_route(client, Route::Line1).await {
         Ok(trains) => {
             match display.update_trains(trains) {
                 Err(e) => {
@@ -81,7 +81,7 @@ fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, train
             continue;
         }
 
-        let idx = if train.direction() == Direction::N {
+        let idx = if train.direction() == Terminus::LynnwoodCC {
             display.get_north_init_idx() + train.get_relative_idx()
         } else {
             display.get_south_init_idx() + train.get_relative_idx()
@@ -101,7 +101,7 @@ fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, train
         };
         led_strip[idx] = final_color;
 
-        let colorized_dir = if train.direction() == Direction::N {
+        let colorized_dir = if train.direction() == Terminus::LynnwoodCC {
             "(N)".red()
         } else {
             "(S)".blue()
