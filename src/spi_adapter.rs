@@ -6,13 +6,7 @@ pub trait SpiWriter {
 }
 
 pub fn get_adapter() -> spi::SpiAdapter {
-    cfg_if::cfg_if! {
-        if #[cfg(all(target_arch="aarch64", target_os="linux", target_env="gnu"))] {
-            spi::SpiAdapter::new()
-        } else {
-            spi::SpiAdapter::new()
-        }
-    }
+    spi::SpiAdapter::new()
 }
 
 #[cfg(all(target_arch="aarch64", target_os="linux", target_env="gnu"))]
@@ -30,8 +24,12 @@ pub mod spi {
     impl SpiAdapter {
         pub fn new() -> Self {
             debug!("running aarch64");
+            let adapter = match WS28xxSpiAdapter::new("/dev/spidev0.0") {
+                Ok(adapter) => adapter,
+                Err(e) => panic!("failed to get spi adapter: {}", e),
+            };
             Self {
-                adapter: WS28xxSpiAdapter::new("/dev/spidev0.0").unwrap()
+                adapter
             }
        }
     }

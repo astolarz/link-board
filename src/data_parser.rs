@@ -149,11 +149,11 @@ fn parse_stop_names(json: &Value) -> HashMap<&str, &str> {
 
     if let Some(stops) = json.as_array() {
         for stop in stops {
-            let stop_id = stop["id"].as_str();
-            let stop_name = stop["name"].as_str();
+            let stop_id = stop["id"].as_str().unwrap_or("");
+            let stop_name = stop["name"].as_str().unwrap_or("");
 
-            if stop_id.is_some() && stop_name.is_some() {
-                stop_map.insert(stop_id.unwrap(), stop_name.unwrap());
+            if !stop_id.is_empty() && !stop_name.is_empty() {
+                stop_map.insert(stop_id, stop_name);
             } else {
                 warn!("invalid stop id ({stop_id:?}) or name ({stop_name:?})");
             }

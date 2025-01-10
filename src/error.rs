@@ -1,5 +1,8 @@
 use core::fmt;
 
+use log::SetLoggerError;
+use tokio::io;
+
 pub struct Error {
     err: Box<ErrorImpl>
 }
@@ -10,7 +13,9 @@ struct ErrorImpl {
 
 enum Kind {
     ClientError(reqwest::Error),
+    IoError(io::Error),
     JsonParseError(serde_json::Error),
+    LoggerError(SetLoggerError),
     TripParseError(TripParseErr),
 }
 
@@ -31,10 +36,26 @@ impl Error {
         }
     }
 
+    pub fn io_error(io_err: io::Error) -> Self {
+        Self {
+            err: Box::new(ErrorImpl {
+                kind: Kind::IoError(io_err),
+            })
+        }
+    }
+
     pub fn json_error(serde_err: serde_json::Error) -> Self {
         Self {
             err: Box::new(ErrorImpl {
                 kind: Kind::JsonParseError(serde_err),
+            })
+        }
+    }
+
+    pub fn logging_error(log_err: SetLoggerError) -> Self {
+        Self {
+            err: Box::new(ErrorImpl {
+                kind: Kind::LoggerError(log_err),
             })
         }
     }
@@ -60,6 +81,18 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+impl From<SetLoggerError> for Error {
+    fn from(value: SetLoggerError) -> Self {
+        Error::logging_error(value)
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(value: io::Error) -> Self {
+        Error::io_error(value)
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         fmt::Display::fmt( &*self.err, f)
@@ -70,7 +103,9 @@ impl fmt::Display for ErrorImpl {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.kind {
             Kind::ClientError(e) => write!(f, "error retrieving data: {e}"),
+            Kind::IoError(e) => write!(f, "tokio::io error: {e}"),
             Kind::JsonParseError(e) => write!(f, "error parsing JSON: {e}"),
+            Kind::LoggerError(e) => write!(f, "logging error: {e}"),
             Kind::TripParseError(trip_err) => write!(f, "failed to find {trip_err:?} for trip"),
         }
     }

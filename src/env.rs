@@ -3,11 +3,10 @@ const STATIONS_ONLY_VAR: &str = "STATIONS_ONLY";
 const DISPLAY_TYPE_VAR: &str = "LINK_BOARD_DISPLAY_TYPE";
 
 pub fn api_key() -> String {
-    let key = dotenvy::var(OBA_ENV_VAR);
-    if key.is_err() {
-        panic!("Failed to get API key!");
+    match dotenvy::var(OBA_ENV_VAR) {
+        Ok(key) => key,
+        Err(e) => panic!("failed to get API key: {}", e),
     }
-    key.unwrap()
 }
 
 pub fn stations_only() -> bool {

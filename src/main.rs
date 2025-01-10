@@ -1,5 +1,6 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
-use log::info;
+use error::Error;
+use log::{error, info};
 use dotenvy::{self, dotenv};
 
 mod error;
@@ -12,9 +13,9 @@ mod spi_adapter;
 mod env;
 
 #[tokio::main]
-async fn main() -> Result<(), tokio::time::error::Error> {
+async fn main() -> Result<(), Error> {
     dotenv().ok();
-    simple_logger::init_with_env().unwrap();
+    simple_logger::init_with_env()?;
 
     let prog_start = Instant::now();
 
@@ -23,7 +24,10 @@ async fn main() -> Result<(), tokio::time::error::Error> {
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
     tokio::spawn(async move {
-        tokio::signal::ctrl_c().await.unwrap();
+        match tokio::signal::ctrl_c().await {
+            Ok(_) => {},
+            Err(e) => error!("failed to listen for shutdown signal: {}", e),
+        };
         info!("ctrl-c interrupt");
         r.store(false, Ordering::SeqCst);
     });
