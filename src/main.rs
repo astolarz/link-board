@@ -46,7 +46,7 @@ async fn main() -> Result<(), tokio::time::error::Error> {
     }
 
     info!("clearing LED strip");
-    display.clear_trains().unwrap();
+    display.clear_trains();
 
     info!("exiting");
     Ok(())

@@ -2,7 +2,7 @@ use crate::led::Led;
 
 pub trait SpiWriter {
     fn write_rgb(&mut self, rgb_vec: Vec<Led>) -> Result<(), String>;
-    fn clear(&mut self, num_to_clear: usize) -> Result<(), String>;
+    fn clear(&mut self, num_to_clear: usize);
 }
 
 pub fn get_adapter() -> spi::SpiAdapter {
@@ -45,9 +45,8 @@ pub mod spi {
             self.adapter.write_encoded_rgb(&spi_encoded_rgb_bits)
         }
 
-        fn clear(&mut self, num_to_clear: usize) -> Result<(), String> {
+        fn clear(&mut self, num_to_clear: usize) {
             self.adapter.clear(num_to_clear);
-            Ok(())
         }
     }
 }
@@ -81,8 +80,7 @@ pub mod spi {
             Ok(())
         }
 
-        fn clear(&mut self, _num_to_clear: usize) -> Result<(), String> {
-            Ok(())
+        fn clear(&mut self, _num_to_clear: usize) {
         }
     }
 }

@@ -40,8 +40,8 @@ impl LinkBoardDisplay for StringDisplay {
         self.adapter.write_rgb(led_strip)
     }
 
-    fn clear_trains(&mut self) -> Result<(), String> {
-        self.adapter.clear(MAX_LEDS_NEEDED)
+    fn clear_trains(&mut self) {
+        self.adapter.clear(MAX_LEDS_NEEDED);
     }
 
     fn get_north_init_idx(&self) -> usize {

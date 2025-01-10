@@ -15,7 +15,7 @@ mod strip_display;
 
 pub trait LinkBoardDisplay {
     fn update_trains(&mut self, trains: Vec<Train>) -> Result<(), String>;
-    fn clear_trains(&mut self) -> Result<(), String>;
+    fn clear_trains(&mut self);
     fn get_north_init_idx(&self) -> usize;
     fn get_north_staging_idx(&self) -> usize;
     fn get_south_init_idx(&self) -> usize;
