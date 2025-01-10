@@ -16,7 +16,7 @@ enum Kind {
 
 #[derive(Debug)]
 pub enum TripParseErr {
-    Direction,
+    Destination,
     Id,
     NextStop,
     ClosestStopTimeOffset,
@@ -45,6 +45,18 @@ impl Error {
                 kind: Kind::TripParseError(trip_err),
             })
         }
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    fn from(value: reqwest::Error) -> Self {
+        Error::client_error(value)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(value: serde_json::Error) -> Self {
+        Error::json_error(value)
     }
 }
 

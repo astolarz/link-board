@@ -18,7 +18,6 @@ async fn main() -> Result<(), tokio::time::error::Error> {
 
     let prog_start = Instant::now();
 
-    let client = reqwest::Client::new();
     let mut display = display::get_display();
 
     let running = Arc::new(AtomicBool::new(true));
@@ -41,7 +40,7 @@ async fn main() -> Result<(), tokio::time::error::Error> {
         }
 
         info!("{:?} secs since main loop started.", prog_start.elapsed().as_secs());
-        display::render_trains(&client, &mut display).await;
+        display::render_trains(&mut display).await;
         info!("i_{} going to sleep after {} seconds", i, loop_time.elapsed().as_secs());
         i += 1;
     }

@@ -30,6 +30,7 @@ pub const STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
 // size of station map * 2 for one LED in between, plus one more for beginning buffer.
 pub const PIXELS_FOR_STATIONS: usize = (STN_NAME_TO_LED_IDX.len() * 2) - 1;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 #[allow(dead_code)]
 pub enum Route {
     Line1,
@@ -38,9 +39,10 @@ pub enum Route {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[allow(dead_code)]
-pub enum Terminus {
+pub enum Destination {
     LynnwoodCC,
     AngleLake,
+    SouthBellevue,
     RedmondTech,
 }
 

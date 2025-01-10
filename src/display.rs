@@ -1,12 +1,12 @@
 use crate::{
-    constants::{Route, Terminus, LED_OFF, STAGING_LED},
+    constants::{Route, Destination, LED_OFF, STAGING_LED},
     data_parser,
     display::{string_display::StringDisplay, strip_display::StripDisplay},
     env,
     led::Led,
     train::Train
 };
-use log::{error, info};
+use log::{error, info, warn};
 use colored::Colorize;
 use std::str::FromStr;
 
@@ -56,8 +56,8 @@ pub fn get_display() -> Box<dyn LinkBoardDisplay> {
     }
 }
 
-pub async fn render_trains(client: &reqwest::Client, display: &mut Box<dyn LinkBoardDisplay>) {
-    match data_parser::get_trains_for_route(client, Route::Line1).await {
+pub async fn render_trains(display: &mut Box<dyn LinkBoardDisplay>) {
+    match data_parser::get_all_trains().await {
         Ok(trains) => {
             match display.update_trains(trains) {
                 Err(e) => {
@@ -76,12 +76,17 @@ fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, train
     let mut total = 0;
 
     for train in trains {
+        if train.route() == Route::Line2 {
+            warn!("skipping 2 Line for now!");
+            continue;
+        }
+
         total += 1;
         if env::stations_only() && !train.at_station {
             continue;
         }
 
-        let idx = if train.direction() == Terminus::LynnwoodCC {
+        let idx = if train.destination() == Destination::LynnwoodCC {
             display.get_north_init_idx() + train.get_relative_idx()
         } else {
             display.get_south_init_idx() + train.get_relative_idx()
@@ -101,7 +106,7 @@ fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, train
         };
         led_strip[idx] = final_color;
 
-        let colorized_dir = if train.direction() == Terminus::LynnwoodCC {
+        let colorized_dir = if train.destination() == Destination::LynnwoodCC {
             "(N)".red()
         } else {
             "(S)".blue()
