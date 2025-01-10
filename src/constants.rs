@@ -1,7 +1,7 @@
 use crate::led::Led;
 use phf::phf_map;
 
-pub const STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
+pub const LN_1_STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
     "Angle Lake" => 0,
     "SeaTac/Airport"=> 1,
     "Tukwila Int'l Blvd"=> 2,
@@ -27,11 +27,22 @@ pub const STN_NAME_TO_LED_IDX:  phf::Map<&'static str, usize> = phf_map! {
     "Lynnwood City Center"=> 22
 };
 
+#[allow(dead_code)]
+pub const LN_2_STN_NAME_TO_LED_IDX: phf::Map<&'static str, usize> = phf_map! {
+    "Redmond Technology" => 0,
+    "Overlake Village" => 1,
+    "BelRed" => 2,
+    "Spring District" => 3,
+    "Wilburton" => 4,
+    "Bellevue Downtown" => 5,
+    "East Main" => 6,
+    "South Bellevue" => 7,
+};
+
 // size of station map * 2 for one LED in between, plus one more for beginning buffer.
-pub const PIXELS_FOR_STATIONS: usize = (STN_NAME_TO_LED_IDX.len() * 2) - 1;
+pub const PIXELS_FOR_STATIONS: usize = (LN_1_STN_NAME_TO_LED_IDX.len() * 2) - 1;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-#[allow(dead_code)]
 pub enum Route {
     Line1,
     Line2,

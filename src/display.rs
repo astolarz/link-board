@@ -20,6 +20,8 @@ pub trait LinkBoardDisplay {
     fn get_north_staging_idx(&self) -> usize;
     fn get_south_init_idx(&self) -> usize;
     fn get_south_staging_idx(&self) -> usize;
+    #[allow(dead_code)]
+    fn show_2_line(&self) -> bool;
 }
 
 #[derive(PartialEq)]
