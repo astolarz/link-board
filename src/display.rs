@@ -84,7 +84,7 @@ fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, train
         }
 
         total += 1;
-        if env::stations_only() && !train.at_station {
+        if env::stations_only() && !train.at_station() {
             continue;
         }
 

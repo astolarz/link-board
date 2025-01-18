@@ -13,7 +13,8 @@ pub struct Train {
     pub next_stop_name: String,
     route: Route,
     destination: Destination,
-    pub at_station: bool,
+    next_stop_time_offset: i64,
+    closest_stop_time_offset: i64,
 }
 
 impl Train {
@@ -21,12 +22,14 @@ impl Train {
         next_stop_name: String,
         route: Route,
         destination: Destination,
-        at_station: bool) -> Self {
+        next_stop_time_offset: i64,
+        closest_stop_time_offset: i64) -> Self {
         Self {
             next_stop_name,
             route,
             destination,
-            at_station,
+            next_stop_time_offset,
+            closest_stop_time_offset,
         }
     }
 
@@ -48,7 +51,7 @@ impl Train {
         let idx = if env::stations_only() {
             raw_idx
         } else {
-            if self.at_station {
+            if self.at_station() {
                 raw_idx * 2
             } else {
                 if self.destination == Destination::LynnwoodCC {
@@ -63,13 +66,17 @@ impl Train {
                 }
             }
         };
-        debug!("idx is {:?} because train.at_station is {}, heading ", idx, self.at_station);
+        debug!("idx is {:?} because train.at_station is {}, heading ", idx, self.at_station());
     
         idx
     }
 
+    pub fn at_station(&self) -> bool {
+        return self.next_stop_time_offset == 0 && self.closest_stop_time_offset == 0
+    }
+
     pub fn get_led_rgb(&self) -> Led {
-        if self.at_station {
+        if self.at_station() {
             AT_STATION
         } else {
             if env::stations_only() {

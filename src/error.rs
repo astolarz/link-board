@@ -25,6 +25,8 @@ pub enum TripParseErr {
     Id,
     NextStop,
     ClosestStopTimeOffset,
+    NotInProgress,
+    BeyondLastStop,
 }
 
 impl Error {
@@ -65,6 +67,13 @@ impl Error {
             err: Box::new(ErrorImpl {
                 kind: Kind::TripParseError(trip_err),
             })
+        }
+    }
+
+    pub fn is_not_in_progress_err(&self) -> bool {
+        match self.err.kind {
+            Kind::TripParseError(TripParseErr::NotInProgress) => true,
+            _ => false
         }
     }
 }
