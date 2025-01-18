@@ -21,7 +21,6 @@ enum Kind {
 
 #[derive(Debug)]
 pub enum TripParseErr {
-    Destination,
     Id,
     NextStop,
     ClosestStopTimeOffset,
