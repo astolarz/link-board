@@ -78,7 +78,7 @@ fn parse_route(json_string: &String, route: Route) -> Result<Vec<Train>, Error> 
     let stops_to_names = parse_stop_names(&references["stops"]);
     let trip_ref_values = references["trips"].as_array();
 
-    let mut trips = vec![];
+    let mut trains = vec![];
 
     if let Some(trip_ref_values) = trip_ref_values {
         info!("found {} trip references for route {:?}", trip_ref_values.len(), route);
@@ -88,12 +88,10 @@ fn parse_route(json_string: &String, route: Route) -> Result<Vec<Train>, Error> 
                 info!("found {} tripDetails for route {:?}", trip_values.len(), route);
 
                 for trip_value in trip_values {
-                    match parse_trip_details(trip_value, &trip_ids_to_dests, &stops_to_names, route) {
-                        Ok(train) => trips.push(train),
+                    match parse_train_from_trip_details(trip_value, &trip_ids_to_dests, &stops_to_names, route) {
+                        Ok(train) => trains.push(train),
                         Err(e) => {
-                            if e.is_not_in_progress_err() {
-                                warn!("trip not yet in progress");
-                            } else {
+                            if !e.is_not_in_progress_err() {
                                 return Err(e);
                             }
                         }
@@ -103,7 +101,7 @@ fn parse_route(json_string: &String, route: Route) -> Result<Vec<Train>, Error> 
         }
     }
 
-    Ok(trips)
+    Ok(trains)
 }
 
 fn parse_trips_from_refs(trip_values: &Vec<Value>, route: Route) -> Result<HashMap<&str, Destination>, Error> {
@@ -122,7 +120,7 @@ fn parse_trips_from_refs(trip_values: &Vec<Value>, route: Route) -> Result<HashM
     Ok(trips_map)
 }
 
-fn parse_trip_details(
+fn parse_train_from_trip_details(
         trip_detail_value: &Value,
         trip_ids_to_dests: &HashMap<&str, Destination>,
         stops_to_names: &HashMap<&str, &str>,
