@@ -1,5 +1,5 @@
 use crate::{
-    constants::{Destination, Route, LED_OFF, LN_1_STN_NAME_TO_LED_IDX},
+    constants::{Destination, Route, LED_OFF, LN_1_STN_NAME_TO_LED_IDX, LN_2_STN_NAME_TO_LED_IDX},
     env,
     led::Led
 };
@@ -43,7 +43,10 @@ impl Train {
 
     pub fn get_relative_idx(&self) -> usize {
         debug!("trying to get idx for {:?}", self.next_stop_name.as_str());
-        let raw_idx = LN_1_STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()];
+        let raw_idx = match self.route { 
+            Route::Line1 => LN_1_STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()],
+            Route::Line2 => LN_2_STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()],
+        };
         debug!("raw_idx {:?}", raw_idx);
         // TODO: figure out logic for not at station, but next station is max or whatever.
         // will probably also need to adjust index logic in main.rs

@@ -88,10 +88,11 @@ fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, train
             continue;
         }
 
-        let idx = if train.destination() == Destination::LynnwoodCC {
-            display.get_north_init_idx() + train.get_relative_idx()
-        } else {
-            display.get_south_init_idx() + train.get_relative_idx()
+        let idx = match train.destination() {
+            Destination::LynnwoodCC => display.get_north_init_idx() + train.get_relative_idx(),
+            Destination::AngleLake => display.get_south_init_idx() + train.get_relative_idx(),
+            Destination::SouthBellevue => todo!(),
+            Destination::RedmondTech => todo!(),
         };
 
         let current_color = led_strip[idx];
