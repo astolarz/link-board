@@ -1,16 +1,11 @@
-use crate::{constants::{Destination, Route}, env, error::{Error, TripParseErr}, train::Train};
+use crate::{constants::Destination, data_retriever::DataRetriever, display::Route, error::{Error, TripParseErr}, train::Train};
 use std::collections::HashMap;
-use futures::{stream, StreamExt};
-use log::{debug, info, warn};
+use log::{info, warn};
 use serde_json::Value;
 
-const LINE_1_ROUTE_ID: &str = "40_100479";
-const LINE_2_ROUTE_ID: &str = "40_2LINE";
-const CONCURRENT_REQUESTS: usize = 2;
-
-pub async fn get_all_trains() -> Result<Vec<Train>, Error> {
+pub async fn get_all_trains(data_retriever: &impl DataRetriever) -> Result<Vec<Train>, Error> {
     let mut all_trains = vec![];
-    let trains_json = get_json_for_all_trains().await?;
+    let trains_json = data_retriever.get_json_for_all_trains().await?;
 
     for (route, json) in trains_json {
         let mut trains = parse_route(&json, route)?;
@@ -18,57 +13,6 @@ pub async fn get_all_trains() -> Result<Vec<Train>, Error> {
     }
 
     Ok(all_trains)
-}
-
-async fn get_json_for_all_trains() -> Result<Vec<(Route, String)>, Error> {
-    let routes = vec![Route::Line1, Route::Line2];
-    let urls = routes.into_iter().map(|route| (route, url_for_route(route)));
-    let mut results = Vec::with_capacity(urls.len());
-    let client =  reqwest::Client::new();
-
-    let fetches = stream::iter(
-        urls.map(|(route, url)| {
-            let mut results = vec![];
-            let client = client.clone();
-            async move {
-                match client.get(&url).send().await {
-                    Ok(response) => {
-                        match response.text().await {
-                            Ok(text) => {
-                                debug!("retrieved text of len {} for route {:?}", text.len(), route);
-                                results.push((route, text.to_owned()))
-                            },
-                            Err(e) => return Err(Error::client_error(e))
-                        }
-                    },
-                    Err(e) => return Err(Error::client_error(e))
-                }
-                Ok(results)
-            }
-        })
-    ).buffer_unordered(CONCURRENT_REQUESTS).collect::<Vec<Result<Vec<(Route, String)>, Error>>>();
-
-    for result in fetches.await {
-        match result {
-            Ok(mut route_and_json) => results.append(&mut route_and_json),
-            Err(e) => return Err(e),
-        }
-    }
-
-    debug!("retrieved {} results", results.len());
-    Ok(results)
-}
-
-fn url_for_route(route: Route) -> String {
-    let route_id = match route {
-        Route::Line1 => LINE_1_ROUTE_ID,
-        Route::Line2 => LINE_2_ROUTE_ID,
-    };
-    format!(
-        "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/{}.json?includeSchedule=false&key={}",
-        route_id,
-        env::api_key()
-    )
 }
 
 fn parse_route(json_string: &String, route: Route) -> Result<Vec<Train>, Error> {

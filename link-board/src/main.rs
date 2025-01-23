@@ -1,16 +1,7 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
-use error::Error;
+use link_board::{data_retriever::dr::get_data_retriever, display, error::Error};
 use log::{error, info};
 use dotenvy::{self, dotenv};
-
-mod error;
-mod constants;
-mod led;
-mod display;
-mod train;
-mod data_parser;
-mod spi_adapter;
-mod env;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -20,6 +11,7 @@ async fn main() -> Result<(), Error> {
     let prog_start = Instant::now();
 
     let mut display = display::get_display();
+    let data_retriever = get_data_retriever();
 
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
@@ -44,7 +36,7 @@ async fn main() -> Result<(), Error> {
         }
 
         info!("{:?} secs since main loop started.", prog_start.elapsed().as_secs());
-        display::render_trains(&mut display).await;
+        display::render_trains(&mut display, &data_retriever).await;
         info!("i_{} going to sleep after {} seconds", i, loop_time.elapsed().as_secs());
         i += 1;
     }

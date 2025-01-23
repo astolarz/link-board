@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "link-board",
+    "link-board-esp-idf",
+]
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true
+opt-level = "z"

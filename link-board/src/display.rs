@@ -1,6 +1,7 @@
 use crate::{
-    constants::{Route, Destination, LED_OFF, STAGING_LED},
+    constants::{Destination, LED_OFF, STAGING_LED},
     data_parser,
+    data_retriever::DataRetriever,
     display::{string_display::StringDisplay, strip_display::StripDisplay},
     env,
     led::Led,
@@ -12,6 +13,13 @@ use std::str::FromStr;
 
 mod string_display;
 mod strip_display;
+
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub enum Route {
+    #[default]
+    Line1,
+    Line2,
+}
 
 pub trait LinkBoardDisplay {
     fn update_trains(&mut self, trains: Vec<Train>) -> Result<(), String>;
@@ -58,8 +66,8 @@ pub fn get_display() -> Box<dyn LinkBoardDisplay> {
     }
 }
 
-pub async fn render_trains(display: &mut Box<dyn LinkBoardDisplay>) {
-    match data_parser::get_all_trains().await {
+pub async fn render_trains(display: &mut Box<dyn LinkBoardDisplay>, data_retriever: &impl DataRetriever) {
+    match data_parser::get_all_trains(data_retriever).await {
         Ok(trains) => {
             match display.update_trains(trains) {
                 Err(e) => {

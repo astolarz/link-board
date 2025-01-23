@@ -1,5 +1,6 @@
 use crate::{
-    constants::{Destination, Route, LED_OFF, LN_1_STN_NAME_TO_LED_IDX},
+    constants::{Destination, LED_OFF, LN_1_STN_NAME_TO_LED_IDX},
+    display::Route,
     env,
     led::Led
 };

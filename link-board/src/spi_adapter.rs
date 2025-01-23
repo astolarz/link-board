@@ -9,7 +9,7 @@ pub fn get_adapter() -> spi::SpiAdapter {
     spi::SpiAdapter::new()
 }
 
-#[cfg(all(target_arch="aarch64", target_os="linux", target_env="gnu"))]
+#[cfg(all(target_arch="aarch64", target_os="linux", target_env="gnu", feature="rpi"))]
 pub mod spi {
     use crate::led::Led;
     use super::SpiWriter;

@@ -1,4 +1,5 @@
 .cargo/
+.embuild/
 .env
 .idea/
 target/
