@@ -1,0 +1,14 @@
+.cargo/
+.env
+.idea/
+target/
+data/
+src/data_parser_test.rs
+utils/
+.DS_Store
+
+Cargo.lock
+
+**/*.rs.bk
+
+*.pdb
