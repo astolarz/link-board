@@ -13,9 +13,9 @@ harness = false # do not use the built in cargo test harness -> resolve rust-ana
 experimental = ["esp-idf-svc/experimental"]
 
 [dependencies]
-log = "0.4"
 esp-idf-svc = { version = "0.51", features = ["critical-section", "embassy-time-driver", "embassy-sync"] }
 link-board = { version = "0.0.1", path = "../link-board", default-features = false }
+log = "0.4"
 
 [build-dependencies]
 embuild = "0.33"

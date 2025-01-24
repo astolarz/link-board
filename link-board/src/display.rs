@@ -55,7 +55,10 @@ impl FromStr for DisplayType {
 }
 
 fn get_display_type() -> DisplayType {
-    env::display_type_string().parse::<DisplayType>().unwrap_or(DisplayType::StripDisplay)
+    match env::display_type_int() {
+        1 => DisplayType::StringDisplay,
+        _ => DisplayType::StripDisplay
+    }
 }
 
 /// returns a StripDisplay or StringDisplay, defaulting to StripDisplay

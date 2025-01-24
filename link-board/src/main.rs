@@ -1,11 +1,9 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
 use link_board::{data_retriever::dr::get_data_retriever, display, error::Error};
 use log::{error, info};
-use dotenvy::{self, dotenv};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    dotenv().ok();
     simple_logger::init_with_env()?;
 
     let prog_start = Instant::now();
