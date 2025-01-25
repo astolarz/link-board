@@ -1,16 +1,14 @@
-use std::time::Duration;
-
 use anyhow::Result;
 use data_retriever::get_data_retriever;
 use dotenvy_macro::dotenv;
-use esp_idf_svc::{eventloop::EspSystemEventLoop, hal::{delay, prelude::Peripherals}, systime::EspSystemTime};
-use link_board::{display, data_retriever::DataRetriever};
+use esp_idf_svc::{eventloop::EspSystemEventLoop, hal::{delay, prelude::Peripherals}};
+use link_board::display;
+use spi_adapter::spi::SpiAdapter;
 use wifi::wifi;
 
-mod wifi;
-
+mod spi_adapter;
 mod data_retriever;
-const FIFTEEN_SECS: Duration = Duration::from_secs(15);
+mod wifi;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -35,9 +33,15 @@ async fn main() -> Result<()> {
     )?;
 
     let mut i: u64 = 0;
-    let mut display = display::get_display();
+    let spi_adapter = SpiAdapter::new(
+        peripherals.spi2,
+        peripherals.pins.gpio6, // sclk
+        peripherals.pins.gpio7, // serial_out
+        peripherals.pins.gpio4  // serial_in
+    );
+    let mut display = display::get_display(spi_adapter);
     let data_retriever = get_data_retriever();
-    let mut delay = delay::Delay::new_default();
+    let delay = delay::Delay::new_default();
 
     loop {
         display::render_trains(&mut display, &data_retriever).await;

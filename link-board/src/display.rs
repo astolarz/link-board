@@ -1,11 +1,5 @@
 use crate::{
-    constants::{Destination, LED_OFF, STAGING_LED},
-    data_parser,
-    data_retriever::DataRetriever,
-    display::{string_display::StringDisplay, strip_display::StripDisplay},
-    env,
-    led::Led,
-    train::Train
+    constants::{Destination, LED_OFF, STAGING_LED}, data_parser, data_retriever::DataRetriever, display::{string_display::StringDisplay, strip_display::StripDisplay}, env, led::Led, spi_adapter::SpiWriter, train::Train
 };
 use log::{error, info, warn};
 use colored::Colorize;
@@ -62,10 +56,10 @@ fn get_display_type() -> DisplayType {
 }
 
 /// returns a StripDisplay or StringDisplay, defaulting to StripDisplay
-pub fn get_display() -> Box<dyn LinkBoardDisplay> {
+pub fn get_display(adapter: impl SpiWriter + 'static) -> Box<dyn LinkBoardDisplay> {
     match get_display_type() {
-        DisplayType::StripDisplay => Box::new(StripDisplay::new()),
-        DisplayType::StringDisplay => Box::new(StringDisplay::new()),
+        DisplayType::StripDisplay => Box::new(StripDisplay::new(adapter)),
+        DisplayType::StringDisplay => Box::new(StringDisplay::new(adapter)),
     }
 }
 

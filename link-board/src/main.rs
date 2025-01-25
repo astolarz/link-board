@@ -1,5 +1,5 @@
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
-use link_board::{data_retriever::dr::get_data_retriever, display, error::Error};
+use link_board::{data_retriever::dr::get_data_retriever, display, error::Error, spi_adapter};
 use log::{error, info};
 
 #[tokio::main]
@@ -8,7 +8,7 @@ async fn main() -> Result<(), Error> {
 
     let prog_start = Instant::now();
 
-    let mut display = display::get_display();
+    let mut display = display::get_display(spi_adapter::spi::get_adapter());
     let data_retriever = get_data_retriever();
 
     let running = Arc::new(AtomicBool::new(true));

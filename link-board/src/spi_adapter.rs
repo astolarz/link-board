@@ -5,11 +5,7 @@ pub trait SpiWriter {
     fn clear(&mut self, num_to_clear: usize);
 }
 
-pub fn get_adapter() -> spi::SpiAdapter {
-    spi::SpiAdapter::new()
-}
-
-#[cfg(all(target_arch="aarch64", target_os="linux", target_env="gnu", feature="rpi"))]
+#[cfg(feature="rpi")]
 pub mod spi {
     use crate::led::Led;
     use super::SpiWriter;
@@ -19,6 +15,10 @@ pub mod spi {
 
     pub struct SpiAdapter {
         adapter: ws2818_rgb_led_spi_driver::adapter_spi::WS28xxSpiAdapter,
+    }
+
+    pub fn get_adapter() -> impl SpiWriter {
+        SpiAdapter::new()
     }
     
     impl SpiAdapter {
@@ -49,7 +49,7 @@ pub mod spi {
     }
 }
 
-#[cfg(any(not(target_arch="aarch64"), not(target_os="linux"), not(target_env="gnu")))]
+#[cfg(all(not(feature="rpi"), not(feature="esp32")))]
 pub mod spi {
     use crate::led::Led;
     use super::SpiWriter;
@@ -65,6 +65,10 @@ pub mod spi {
             Self {
             }
         }
+    }
+
+    pub fn get_adapter() -> impl SpiWriter {
+        SpiAdapter::new()
     }
 
     impl SpiWriter for SpiAdapter {

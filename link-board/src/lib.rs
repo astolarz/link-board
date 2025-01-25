@@ -4,6 +4,6 @@ pub mod data_retriever;
 pub mod display;
 mod env;
 pub mod error;
-mod led;
-mod spi_adapter;
+pub mod led;
+pub mod spi_adapter;
 mod train;
