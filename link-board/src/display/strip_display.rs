@@ -64,7 +64,7 @@ impl StripDisplay {
 
 impl LinkBoardDisplay for StripDisplay {
     fn update_trains(&mut self, trains: Vec<Train>) -> Result<(), String> {
-        let mut led_strip: Vec<Led> = vec![LED_OFF; MAX_LEDS_NEEDED];
+        let mut led_strip: Vec<Led> = vec![LED_OFF; MAX_LEDS_FOR_STRIP];
         let mut count = 0;
 
         // write initial leds
@@ -86,7 +86,7 @@ impl LinkBoardDisplay for StripDisplay {
     }
 
     fn clear_trains(&mut self) {
-        self.adapter.clear(MAX_LEDS_NEEDED);
+        self.adapter.clear(MAX_LEDS_FOR_STRIP);
     }
 
     fn get_north_init_idx(&self) -> usize {

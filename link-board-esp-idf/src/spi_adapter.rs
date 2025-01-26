@@ -34,18 +34,23 @@ pub mod spi {
 
     impl SpiWriter for SpiAdapter {
         fn write_rgb(&mut self, rgb_vec: Vec<Led>) -> Result<(), String> {
+            log::info!("writing {} leds", rgb_vec.len());
             let mut rgb8_leds = vec![];
             for rgb in rgb_vec {
                 rgb8_leds.push(RGB8::new(rgb.r(), rgb.g(), rgb.b()));
             }
             match self.adapter.write(rgb8_leds) {
                 Ok(()) => Ok(()),
-                Err(e) => Err(e.to_string()),
+                Err(e) => {
+                    log::error!("{}", e.to_string());
+                    Err(e.to_string())
+                },
             }
         }
 
-        fn clear(&mut self, _num_to_clear: usize) {
-            unimplemented!();
+        fn clear(&mut self, num_to_clear: usize) {
+            let clear_vec = vec![RGB8::new(0, 0, 0); num_to_clear];
+            self.adapter.write(clear_vec).unwrap();
         }
     }
 }
