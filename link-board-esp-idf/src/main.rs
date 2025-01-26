@@ -2,7 +2,7 @@ use anyhow::Result;
 use data_retriever::get_data_retriever;
 use dotenvy_macro::dotenv;
 use esp_idf_svc::{eventloop::EspSystemEventLoop, hal::{delay, prelude::Peripherals}};
-use link_board::{data_retriever::DataRetriever, display};
+use link_board::display;
 use spi_adapter::spi::SpiAdapter;
 use wifi::wifi;
 
