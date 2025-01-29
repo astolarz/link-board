@@ -12,6 +12,11 @@ harness = false # do not use the built in cargo test harness -> resolve rust-ana
 
 experimental = ["esp-idf-svc/experimental"]
 
+[features]
+default = ["esp32s3"]
+esp32 = []
+esp32s3 = []
+
 [dependencies]
 anyhow = "1.0.95"
 dotenvy_macro = "0.15.7"

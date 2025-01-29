@@ -6,19 +6,20 @@ use esp_idf_svc::http::client::{Configuration, EspHttpConnection};
 #[derive(Default)]
 pub struct DataRetrieverImpl;
 
-pub fn get_data_retriever() -> impl DataRetriever {
+pub fn get_data_retriever() -> DataRetrieverImpl {
     DataRetrieverImpl::default()
 }
 
 impl DataRetrieverImpl {
-
 }
 
 impl DataRetriever for DataRetrieverImpl {
     async fn get_json_for_all_trains(&self) -> Result<Vec<(link_board::display::Route, String)>, link_board::error::Error> {
         // much of this code is from https://github.com/esp-rs/std-training/blob/main/intro/http-client/examples/https_client.rs
         let routes = vec![Route::Line1, Route::Line2];
+        log::info!("retrieving {} route(s)", routes.len());
         let urls = routes.into_iter().map(|route| (route, DataRetrieverImpl::url_for_route(route, env::api_key())));
+        log::info!("got {} url(s)", urls.len());
         let mut results = Vec::with_capacity(urls.len());
 
         let connection = EspHttpConnection::new(&Configuration {
@@ -26,13 +27,16 @@ impl DataRetriever for DataRetrieverImpl {
             crt_bundle_attach: Some(esp_idf_svc::sys::esp_crt_bundle_attach),
             ..Default::default()
         }).unwrap();
+        log::info!("got a connection");
 
         let mut client = Client::wrap(connection);
+        log::info!("got a client");
         let headers = [("accept", "text/plain")];
 
         for (current_route, current_url) in urls {
             let mut result_json = String::new();
             let request = client.request(Method::Get, &current_url.as_ref(), &headers).unwrap();
+            log::info!("submitting request...");
             let response = request.submit().unwrap();
             let status = response.status();
 
@@ -40,7 +44,7 @@ impl DataRetriever for DataRetrieverImpl {
 
             match status {
                 200..=299 => {
-                    let mut buf = [0_u8; 256];
+                    let mut buf = [0_u8; 2048];
                     let mut offset = 0;
                     let mut total = 0;
                     let mut reader = response;
@@ -50,6 +54,7 @@ impl DataRetriever for DataRetrieverImpl {
                                 break;
                             }
                             total += size;
+                            log::info!("reading {} bytes, current total {} bytes", size, total);
                             let size_plus_offset = size + offset;
                             match std::str::from_utf8(&buf[..size_plus_offset]) {
                                 Ok(text) => {
@@ -64,7 +69,7 @@ impl DataRetriever for DataRetrieverImpl {
                             }
                         }
                     }
-                    println!("Total: {} bytes", total);
+                    log::info!("Total: {} bytes", total);
                     results.push((current_route, result_json));
                 },
                 _ => log::error!("unexpected response code: {}", status)

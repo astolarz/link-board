@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Ok, Result};
 use data_retriever::get_data_retriever;
 use dotenvy_macro::dotenv;
 use esp_idf_svc::{eventloop::EspSystemEventLoop, hal::{delay, prelude::Peripherals}};
@@ -43,22 +43,39 @@ fn main() -> Result<()> {
     })?;
 
     let mut i: u64 = 0;
+
+    #[cfg(feature="esp32")]
     let spi_adapter = SpiAdapter::new(
         peripherals.spi2,
         peripherals.pins.gpio14,       // sclk
         peripherals.pins.gpio12, // serial_out
         peripherals.pins.gpio13   // serial_in
     );
+
+    #[cfg(feature="esp32s3")]
+    let spi_adapter = SpiAdapter::new(
+        peripherals.spi2,
+        peripherals.pins.gpio12,       // sclk
+        peripherals.pins.gpio11, // serial_out
+        peripherals.pins.gpio13   // serial_in
+    );
+
     let mut display = display::get_display(spi_adapter);
     let data_retriever = get_data_retriever();
-    let delay = delay::Delay::new_default();
 
-    loop {
-        smol::block_on(async {
+
+    smol::block_on(async {
+        loop {
+            log::info!("loop {}", i);
+            let delay = delay::Delay::new_default();
+            
             display::render_trains(&mut display, &data_retriever).await;
-        });
-        log::info!("loop {}", i);
-        i += 1;
-        delay.delay_ms(5000 as u32);
-    }
+            
+            log::info!("sleeping...");
+            delay.delay_ms(15000 as u32);
+            i += 1;
+        }
+    });
+
+    Ok(())
 }
