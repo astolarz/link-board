@@ -1,5 +1,5 @@
 pub mod spi {
-    use esp_idf_hal::{gpio::OutputPin, interrupt::IsrCriticalSection};
+    use esp_idf_hal::gpio::OutputPin;
     #[cfg(feature="rmt")]
     use esp_idf_hal::{ peripheral::Peripheral, rmt::RmtChannel};
     #[cfg(feature="spi")]
