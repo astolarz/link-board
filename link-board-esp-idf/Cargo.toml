@@ -13,9 +13,11 @@ harness = false # do not use the built in cargo test harness -> resolve rust-ana
 experimental = ["esp-idf-svc/experimental"]
 
 [features]
-default = ["esp32s3"]
+default = ["esp32s3", "rmt"]
 esp32 = []
 esp32s3 = []
+spi = ["dep:ws2812-spi"]
+rmt = ["dep:ws2812-esp32-rmt-driver"]
 
 [dependencies]
 anyhow = "1.0.95"
@@ -27,7 +29,8 @@ link-board = { version = "0.0.1", path = "../link-board", default-features = fal
 log = "0.4"
 smart-leds = "0.4.0"
 smol = "2.0.2"
-ws2812-spi = { version = "0.5.0", features = ["mosi_idle_high"] }
+ws2812-esp32-rmt-driver = { git = "https://github.com/cat-in-136/ws2812-esp32-rmt-driver", features = ["smart-leds-trait"], optional = true }
+ws2812-spi = { version = "0.5.0", features = ["mosi_idle_high"], optional = true }
 
 [build-dependencies]
 embuild = "0.33"

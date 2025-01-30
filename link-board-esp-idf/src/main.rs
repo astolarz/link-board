@@ -10,6 +10,8 @@ mod spi_adapter;
 mod data_retriever;
 mod wifi;
 
+const LOOP_PAUSE: u32 = 5000;
+
 fn main() -> Result<()> {
     // It is necessary to call this function once. Otherwise some patches to the runtime
     // implemented by esp-idf-sys might not link properly. See https://github.com/esp-rs/esp-idf-template/issues/71
@@ -44,7 +46,7 @@ fn main() -> Result<()> {
 
     let mut i: u64 = 0;
 
-    #[cfg(feature="esp32")]
+    #[cfg(all(feature="esp32", feature="spi"))]
     let spi_adapter = SpiAdapter::new(
         peripherals.spi2,
         peripherals.pins.gpio14,       // sclk
@@ -52,27 +54,29 @@ fn main() -> Result<()> {
         peripherals.pins.gpio13   // serial_in
     );
 
-    #[cfg(feature="esp32s3")]
-    let spi_adapter = SpiAdapter::new(
+    #[cfg(all(feature="esp32s3", feature="spi"))]
+    let spi_adapter = SpiAdapter::new_spi(
         peripherals.spi2,
         peripherals.pins.gpio12,       // sclk
         peripherals.pins.gpio11, // serial_out
         peripherals.pins.gpio13   // serial_in
     );
 
+    #[cfg(all(feature="esp32s3", feature="rmt"))]
+    let spi_adapter = SpiAdapter::new_rmt(peripherals.rmt.channel0, peripherals.pins.gpio11);
+
     let mut display = display::get_display(spi_adapter);
     let data_retriever = get_data_retriever();
-
+    let delay = delay::Delay::new_default();
 
     smol::block_on(async {
         loop {
             log::info!("loop {}", i);
-            let delay = delay::Delay::new_default();
             
             display::render_trains(&mut display, &data_retriever).await;
             
             log::info!("sleeping...");
-            delay.delay_ms(15000 as u32);
+            delay.delay_ms(LOOP_PAUSE);
             i += 1;
         }
     });
