@@ -30,8 +30,6 @@ fn main() -> Result<()> {
     let wifi_ssid = dotenv!("WIFI_SSID");
     let password = dotenv!("WIFI_PASSWORD");
 
-    log::info!("trying to join {} wifi network with password {}", wifi_ssid, password);
-
     let _wifi = wifi(
         wifi_ssid,
         password,
