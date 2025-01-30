@@ -12,6 +12,9 @@ pub mod spi {
     #[cfg(feature="spi")]
     use ws2812_spi::Ws2812;
 
+    #[cfg(not(feature="rmt"))]
+    use crate::CS;
+
     pub struct SpiAdapter {
         #[cfg(feature="spi")]
         spi_adapter: Ws2812<SpiBusDriver<'static, SpiDriver<'static>>>,
@@ -65,12 +68,17 @@ pub mod spi {
             #[cfg(feature="rmt")]
             let adapter = &mut self.rmt_adapter;
 
-            match adapter.write(rgb8_leds) {
-                Ok(()) => Ok(()),
-                Err(e) => {
-                    log::error!("{}", e.to_string());
-                    Err(e.to_string())
-                },
+            {
+                #[cfg(not(feature="rmt"))]
+                let _guard = CS.enter();
+                
+                match adapter.write(rgb8_leds) {
+                    Ok(()) => Ok(()),
+                    Err(e) => {
+                        log::error!("{}", e.to_string());
+                        Err(e.to_string())
+                    },
+                }
             }
         }
 

@@ -1,6 +1,8 @@
 use anyhow::{Ok, Result};
 use data_retriever::get_data_retriever;
 use dotenvy_macro::dotenv;
+#[cfg(not(feature="rmt"))]
+use esp_idf_hal::interrupt::IsrCriticalSection;
 use esp_idf_svc::{eventloop::EspSystemEventLoop, hal::{delay, prelude::Peripherals}};
 use link_board::display;
 use spi_adapter::spi::SpiAdapter;
@@ -11,6 +13,10 @@ mod data_retriever;
 mod wifi;
 
 const LOOP_PAUSE: u32 = 5000;
+
+// IsrCriticalSection crashes when using RMT
+#[cfg(not(feature="rmt"))]
+static CS: IsrCriticalSection = IsrCriticalSection::new();
 
 fn main() -> Result<()> {
     // It is necessary to call this function once. Otherwise some patches to the runtime
