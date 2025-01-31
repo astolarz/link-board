@@ -7,6 +7,7 @@ use esp_idf_svc::{
 };
 use log::info;
 
+// Mostly from https://github.com/esp-rs/std-training/blob/main/common/lib/wifi/src/lib.rs
 pub fn wifi(
     ssid: &str,
     pass: &str,

@@ -13,11 +13,9 @@ harness = false # do not use the built in cargo test harness -> resolve rust-ana
 experimental = ["esp-idf-svc/experimental"]
 
 [features]
-default = ["esp32s3", "spi"]
+default = ["esp32s3"]
 esp32 = []
 esp32s3 = []
-spi = ["dep:ws2812-spi"]
-rmt = ["dep:ws2812-esp32-rmt-driver"]
 
 [dependencies]
 anyhow = "1.0.95"
