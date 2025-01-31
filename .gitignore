@@ -1,4 +1,4 @@
-.cargo/
+/.cargo/
 .embuild/
 .env
 .idea/
