@@ -51,7 +51,7 @@ fn main() -> Result<()> {
     let mut i: u64 = 0;
 
     #[cfg(all(feature="esp32", feature="spi"))]
-    let spi_adapter = SpiAdapter::new(
+    let spi_adapter = SpiAdapter::new_spi(
         peripherals.spi2,
         peripherals.pins.gpio14,       // sclk
         peripherals.pins.gpio12, // serial_out

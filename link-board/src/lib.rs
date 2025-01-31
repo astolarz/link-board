@@ -7,3 +7,4 @@ pub mod error;
 pub mod led;
 pub mod spi_adapter;
 mod train;
+mod trips_for_route_types;
