@@ -2,7 +2,7 @@ use crate::{
     constants::{LED_OFF, PIXELS_FOR_STATIONS},
     led::Led,
     display::{index_trains, LinkBoardDisplay},
-    spi_adapter::{self, spi::SpiAdapter, SpiWriter},
+    spi_adapter::SpiWriter,
     train::Train
 };
 use log::info;
@@ -18,13 +18,13 @@ const SOUTH_TRAIN_STAGING_IDX: usize = SOUTH_TRAIN_INIT_IDX + PIXELS_FOR_STATION
 const MAX_LEDS_NEEDED: usize = SOUTH_TRAIN_STAGING_IDX + 1;
 
 pub struct StringDisplay {
-    adapter: SpiAdapter
+    adapter: Box<dyn SpiWriter>
 }
 
 impl StringDisplay {
-    pub fn new() -> Self {
+    pub fn new(adapter: impl SpiWriter + 'static) -> Self {
         Self {
-            adapter: spi_adapter::get_adapter()
+            adapter: Box::new(adapter)
         }
     }
 }

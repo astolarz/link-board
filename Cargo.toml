@@ -1,19 +1,14 @@
-[package]
-name = "link-board"
-version = "0.0.1"
-edition = "2021"
-license = "MIT OR Apache-2.0"
+[workspace]
+resolver = "2"
 
-[dependencies]
-dotenvy = "0.15.7"
-tokio = { version = "1", features = ["full"] }
-reqwest = "0.12.7"
-serde_json = "1.0.128"
-ws2818-rgb-led-spi-driver = "2.0.0"
-openssl = { version = "0.10", features = ["vendored"] }
-phf = { version = "0.11", features = ["macros"] }
-cfg-if = "1.0.0"
-log = { version = "0.4.22", features = ["max_level_debug", "release_max_level_info"] }
-simple_logger = "5.0.0"
-colored = "2.1.0"
-futures = "0.3.31"
+members = [
+    "link-board",
+    "link-board-esp-idf",
+]
+
+[profile.release]
+opt-level = "s"
+
+[profile.dev]
+debug = true
+opt-level = "z"

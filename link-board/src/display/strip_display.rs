@@ -2,7 +2,7 @@ use crate::{
     constants::{LED_OFF, PIXELS_FOR_STATIONS},
     led::Led,
     display::{index_trains, LinkBoardDisplay},
-    spi_adapter::{self, spi::SpiAdapter, SpiWriter},
+    spi_adapter::SpiWriter,
     train::Train
 };
 use log::{info, warn};
@@ -50,21 +50,21 @@ const END_BUF_INIT_IDX: usize = SOUTH_TRAIN_INIT_IDX + PIXELS_FOR_STATIONS;
 const MAX_LEDS_NEEDED: usize = END_BUF_INIT_IDX + LED_BUFFER_COUNT;
 
 pub struct StripDisplay {
-    adapter: SpiAdapter
+    adapter: Box<dyn SpiWriter>
 }
 
 impl StripDisplay {
-    pub fn new() -> Self {
+    pub fn new(adapter: impl SpiWriter + 'static) -> Self {
         assert!(MAX_LEDS_NEEDED <= MAX_LEDS_FOR_STRIP);
         Self {
-            adapter: spi_adapter::get_adapter()
+            adapter: Box::new(adapter)
         }
     }
 }
 
 impl LinkBoardDisplay for StripDisplay {
     fn update_trains(&mut self, trains: Vec<Train>) -> Result<(), String> {
-        let mut led_strip: Vec<Led> = vec![LED_OFF; MAX_LEDS_NEEDED];
+        let mut led_strip: Vec<Led> = vec![LED_OFF; MAX_LEDS_FOR_STRIP];
         let mut count = 0;
 
         // write initial leds
@@ -86,7 +86,7 @@ impl LinkBoardDisplay for StripDisplay {
     }
 
     fn clear_trains(&mut self) {
-        self.adapter.clear(MAX_LEDS_NEEDED);
+        self.adapter.clear(MAX_LEDS_FOR_STRIP);
     }
 
     fn get_north_init_idx(&self) -> usize {

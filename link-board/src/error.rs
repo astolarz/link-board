@@ -12,6 +12,7 @@ struct ErrorImpl {
 }
 
 enum Kind {
+    #[cfg(feature = "native")]
     ClientError(reqwest::Error),
     IoError(io::Error),
     JsonParseError(serde_json::Error),
@@ -29,6 +30,7 @@ pub enum TripParseErr {
 }
 
 impl Error {
+    #[cfg(feature = "native")]
     pub fn client_error(req_err: reqwest::Error) -> Self {
         Self {
             err: Box::new(ErrorImpl {
@@ -77,6 +79,8 @@ impl Error {
     }
 }
 
+
+#[cfg(feature = "native")]
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
         Error::client_error(value)
@@ -110,6 +114,7 @@ impl fmt::Display for Error {
 impl fmt::Display for ErrorImpl {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.kind {
+            #[cfg(feature = "native")]
             Kind::ClientError(e) => write!(f, "error retrieving data: {e}"),
             Kind::IoError(e) => write!(f, "tokio::io error: {e}"),
             Kind::JsonParseError(e) => write!(f, "error parsing JSON: {e}"),

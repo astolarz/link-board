@@ -1,10 +1,5 @@
 use crate::{
-    constants::{Route, Destination, LED_OFF, STAGING_LED},
-    data_parser,
-    display::{string_display::StringDisplay, strip_display::StripDisplay},
-    env,
-    led::Led,
-    train::Train
+    constants::{Destination, LED_OFF, STAGING_LED}, data_parser, data_retriever::DataRetriever, display::{string_display::StringDisplay, strip_display::StripDisplay}, env, led::Led, spi_adapter::SpiWriter, train::Train
 };
 use log::{error, info, warn};
 use colored::Colorize;
@@ -12,6 +7,13 @@ use std::str::FromStr;
 
 mod string_display;
 mod strip_display;
+
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub enum Route {
+    #[default]
+    Line1,
+    Line2,
+}
 
 pub trait LinkBoardDisplay {
     fn update_trains(&mut self, trains: Vec<Train>) -> Result<(), String>;
@@ -47,19 +49,22 @@ impl FromStr for DisplayType {
 }
 
 fn get_display_type() -> DisplayType {
-    env::display_type_string().parse::<DisplayType>().unwrap_or(DisplayType::StripDisplay)
-}
-
-/// returns a StripDisplay or StringDisplay, defaulting to StripDisplay
-pub fn get_display() -> Box<dyn LinkBoardDisplay> {
-    match get_display_type() {
-        DisplayType::StripDisplay => Box::new(StripDisplay::new()),
-        DisplayType::StringDisplay => Box::new(StringDisplay::new()),
+    match env::display_type_int() {
+        1 => DisplayType::StringDisplay,
+        _ => DisplayType::StripDisplay
     }
 }
 
-pub async fn render_trains(display: &mut Box<dyn LinkBoardDisplay>) {
-    match data_parser::get_all_trains().await {
+/// returns a StripDisplay or StringDisplay, defaulting to StripDisplay
+pub fn get_display(adapter: impl SpiWriter + 'static) -> Box<dyn LinkBoardDisplay> {
+    match get_display_type() {
+        DisplayType::StripDisplay => Box::new(StripDisplay::new(adapter)),
+        DisplayType::StringDisplay => Box::new(StringDisplay::new(adapter)),
+    }
+}
+
+pub async fn render_trains(display: &mut Box<dyn LinkBoardDisplay>, data_retriever: &impl DataRetriever) {
+    match data_parser::get_all_trains(data_retriever).await {
         Ok(trains) => {
             match display.update_trains(trains) {
                 Err(e) => {
