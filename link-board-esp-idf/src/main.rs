@@ -15,6 +15,12 @@ const LOOP_PAUSE: u32 = 5000;
 
 static CS: IsrCriticalSection = IsrCriticalSection::new();
 
+#[cfg(all(not(feature="esp32"), not(feature="esp32s3")))]
+compile_error!("must specify either esp32 or esp32s3!");
+
+#[cfg(all(feature="esp32", feature="esp32s3"))]
+compile_error!("must only specify one of esp32 or esp32s3!");
+
 fn main() -> Result<()> {
     // It is necessary to call this function once. Otherwise some patches to the runtime
     // implemented by esp-idf-sys might not link properly. See https://github.com/esp-rs/esp-idf-template/issues/71
@@ -48,7 +54,7 @@ fn main() -> Result<()> {
     let mut i: u64 = 0;
 
     #[cfg(feature="esp32")]
-    let spi_adapter = SpiAdapter::new_spi(
+    let spi_adapter = SpiAdapter::new(
         peripherals.spi2,
         peripherals.pins.gpio14,       // sclk
         peripherals.pins.gpio12, // serial_out

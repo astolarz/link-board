@@ -8,7 +8,7 @@ pub mod spi {
     use crate::CS;
 
     pub struct SpiAdapter {
-        spi_adapter: Ws2812<SpiBusDriver<'static, SpiDriver<'static>>>,
+        adapter: Ws2812<SpiBusDriver<'static, SpiDriver<'static>>>,
     }
     
     impl SpiAdapter {
@@ -29,7 +29,7 @@ pub mod spi {
             let adapter = Ws2812::new(spi_bus);
             log::info!("running esp32");
             Self {
-                spi_adapter: adapter,
+                adapter,
             }
         }
     }
