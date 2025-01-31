@@ -45,8 +45,10 @@ impl Train {
     pub fn get_relative_idx(&self) -> usize {
         debug!("trying to get idx for {:?}", self.next_stop_name.as_str());
         let raw_idx = match self.route { 
-            Route::Line1 => LN_1_STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()],
-            Route::Line2 => LN_2_STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()],
+            // Subtract index of Angle Lake to normalize at 0
+            Route::Line1 => LN_1_STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()] - LN_1_STN_NAME_TO_LED_IDX["Angle Lake"],
+            // Subtract index of South Bellevue to normalize at 0
+            Route::Line2 => LN_2_STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()] - LN_2_STN_NAME_TO_LED_IDX["South Bellevue"],
         };
         debug!("raw_idx {:?}", raw_idx);
         // TODO: figure out logic for not at station, but next station is max or whatever.

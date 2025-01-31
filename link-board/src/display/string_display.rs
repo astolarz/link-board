@@ -49,19 +49,19 @@ impl LinkBoardDisplay for StringDisplay {
         self.adapter.write_rgb(led_strip)
     }
 
-    fn get_north_init_idx(&self) -> usize {
+    fn get_1n_init_idx(&self) -> usize {
         NORTH_TRAIN_INIT_IDX
     }
 
-    fn get_north_staging_idx(&self) -> usize {
+    fn get_1n_staging_idx(&self) -> usize {
         NORTH_TRAIN_STAGING_IDX
     }
 
-    fn get_south_init_idx(&self) -> usize {
+    fn get_1s_init_idx(&self) -> usize {
         SOUTH_TRAIN_INIT_IDX
     }
 
-    fn get_south_staging_idx(&self) -> usize {
+    fn get_1s_staging_idx(&self) -> usize {
         SOUTH_TRAIN_STAGING_IDX
     }
 

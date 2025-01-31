@@ -26,10 +26,10 @@ pub trait LinkBoardDisplay {
     fn update_trains(&mut self, trains: Vec<Train>) -> Result<(), String>;
     fn clear_trains(&mut self);
     fn init_red(&mut self) -> Result<(), String>;
-    fn get_north_init_idx(&self) -> usize;
-    fn get_north_staging_idx(&self) -> usize;
-    fn get_south_init_idx(&self) -> usize;
-    fn get_south_staging_idx(&self) -> usize;
+    fn get_1n_init_idx(&self) -> usize;
+    fn get_1n_staging_idx(&self) -> usize;
+    fn get_1s_init_idx(&self) -> usize;
+    fn get_1s_staging_idx(&self) -> usize;
     #[allow(dead_code)]
     fn show_2_line(&self) -> bool;
 }
@@ -104,14 +104,14 @@ fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, train
         }
 
         let idx = match train.destination() {
-            Destination::LynnwoodCC => display.get_north_init_idx() + train.get_relative_idx(),
-            Destination::AngleLake => display.get_south_init_idx() + train.get_relative_idx(),
+            Destination::LynnwoodCC => display.get_1n_init_idx() + train.get_relative_idx(),
+            Destination::AngleLake => display.get_1s_init_idx() + train.get_relative_idx(),
             Destination::SouthBellevue => todo!(),
             Destination::RedmondTech => todo!(),
         };
 
         let current_color = led_strip[idx];
-        let final_color = if idx == display.get_north_staging_idx() || idx == display.get_south_staging_idx() {
+        let final_color = if idx == display.get_1n_staging_idx() || idx == display.get_1s_staging_idx() {
             STAGING_LED
         } else {
             let mut new_color = train.get_led_rgb();
