@@ -1,5 +1,5 @@
 use crate::{
-    constants::{LED_OFF, PIXELS_FOR_STATIONS},
+    constants::{LED_OFF, LED_RED, PIXELS_FOR_STATIONS},
     led::Led,
     display::{index_trains, LinkBoardDisplay},
     spi_adapter::SpiWriter,
@@ -42,6 +42,11 @@ impl LinkBoardDisplay for StringDisplay {
 
     fn clear_trains(&mut self) {
         self.adapter.clear(MAX_LEDS_NEEDED);
+    }
+
+    fn init_red(&mut self) -> Result<(), String> {
+        let led_strip: Vec<Led> = vec![LED_RED; MAX_LEDS_NEEDED];
+        self.adapter.write_rgb(led_strip)
     }
 
     fn get_north_init_idx(&self) -> usize {

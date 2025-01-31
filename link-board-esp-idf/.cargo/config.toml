@@ -1,7 +1,7 @@
 # Uncomment the target for your chip
 [build]
-#target = "xtensa-esp32s3-espidf"
-target = "xtensa-esp32-espidf"
+target = "xtensa-esp32s3-espidf"
+#target = "xtensa-esp32-espidf"
 
 [target.xtensa-esp32-espidf]
 linker = "ldproxy"

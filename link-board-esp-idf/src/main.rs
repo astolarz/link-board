@@ -29,16 +29,6 @@ fn main() -> Result<()> {
     esp_idf_svc::log::EspLogger::initialize_default();
 
     let peripherals = Peripherals::take().unwrap();
-    let sysloop = EspSystemEventLoop::take()?;
-    let wifi_ssid = dotenv!("WIFI_SSID");
-    let password = dotenv!("WIFI_PASSWORD");
-
-    let _wifi = wifi(
-        wifi_ssid,
-        password,
-        peripherals.modem,
-        sysloop,
-    )?;
 
     // required to prevent:
     // cannot initialize I/O event notification: Custom { kind: PermissionDenied, error: "failed to initialize eventfd for polling, try calling `esp_vfs_eventfd_register`" }
@@ -71,6 +61,18 @@ fn main() -> Result<()> {
 
     let mut display = display::get_display(spi_adapter);
     let data_retriever = get_data_retriever();
+
+    let sysloop = EspSystemEventLoop::take()?;
+    let wifi_ssid = dotenv!("WIFI_SSID");
+    let password = dotenv!("WIFI_PASSWORD");
+
+    let _wifi = wifi(
+        wifi_ssid,
+        password,
+        peripherals.modem,
+        sysloop,
+    )?;
+
     let delay = delay::Delay::new_default();
 
     smol::block_on(async {

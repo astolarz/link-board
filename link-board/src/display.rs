@@ -1,5 +1,12 @@
 use crate::{
-    constants::{Destination, LED_OFF, STAGING_LED}, data_parser, data_retriever::DataRetriever, display::{string_display::StringDisplay, strip_display::StripDisplay}, env, led::Led, spi_adapter::SpiWriter, train::Train
+    constants::{Destination, LED_OFF, STAGING_LED},
+    data_parser,
+    data_retriever::DataRetriever,
+    display::{string_display::StringDisplay, strip_display::StripDisplay},
+    env,
+    led::Led,
+    spi_adapter::SpiWriter,
+    train::Train
 };
 use log::{error, info, warn};
 use colored::Colorize;
@@ -18,6 +25,7 @@ pub enum Route {
 pub trait LinkBoardDisplay {
     fn update_trains(&mut self, trains: Vec<Train>) -> Result<(), String>;
     fn clear_trains(&mut self);
+    fn init_red(&mut self) -> Result<(), String>;
     fn get_north_init_idx(&self) -> usize;
     fn get_north_staging_idx(&self) -> usize;
     fn get_south_init_idx(&self) -> usize;
@@ -57,10 +65,12 @@ fn get_display_type() -> DisplayType {
 
 /// returns a StripDisplay or StringDisplay, defaulting to StripDisplay
 pub fn get_display(adapter: impl SpiWriter + 'static) -> Box<dyn LinkBoardDisplay> {
-    match get_display_type() {
+    let mut display: Box<dyn LinkBoardDisplay> = match get_display_type() {
         DisplayType::StripDisplay => Box::new(StripDisplay::new(adapter)),
         DisplayType::StringDisplay => Box::new(StringDisplay::new(adapter)),
-    }
+    };
+    display.init_red().unwrap();
+    display
 }
 
 pub async fn render_trains(display: &mut Box<dyn LinkBoardDisplay>, data_retriever: &impl DataRetriever) {
