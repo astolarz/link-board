@@ -53,4 +53,5 @@ pub enum Destination {
 }
 
 pub const LED_OFF: Led = Led::off();
+pub const LED_RED: Led = Led::red();
 pub const STAGING_LED: Led = Led::purple();
