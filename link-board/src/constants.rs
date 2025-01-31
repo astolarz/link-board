@@ -57,7 +57,7 @@ pub const LN_2_STN_NAME_TO_LED_IDX: phf::Map<&'static str, usize> = phf_map! {
     "BelRed" => 20,
     "Overlake Village" => 21,
     "Redmond Technology" => 22,
-    // unused below here until spring 2025
+    // unused below here until May 10, 2025
     "Marymoor Village" => 23,
     "Downtown Redmond" => 24,
 };
