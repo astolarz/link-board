@@ -1,7 +1,12 @@
+
+#[cfg(not(feature="esp32"))]
 use std::{sync::{atomic::{AtomicBool, Ordering}, Arc}, time::{Duration, Instant}};
+#[cfg(not(feature="esp32"))]
 use link_board::{data_retriever::dr::get_data_retriever, display, error::Error, spi_adapter};
+#[cfg(not(feature="esp32"))]
 use log::{error, info};
 
+#[cfg(not(feature="esp32"))]
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     simple_logger::init_with_env()?;
@@ -44,4 +49,8 @@ async fn main() -> Result<(), Error> {
 
     info!("exiting");
     Ok(())
+}
+
+#[cfg(feature="esp32")]
+fn main() {
 }

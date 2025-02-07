@@ -35,31 +35,31 @@ impl Led {
 
     pub const fn red() -> Self {
         Self {
-            value: (255, 0, 0)
+            value: (155, 0, 0)
         }
     }
 
     pub const fn green() -> Self {
         Self {
-            value: (0, 255, 0)
+            value: (0, 155, 0)
         }
     }
 
     pub const fn blue() -> Self {
         Self {
-            value: (0, 0, 255)
+            value: (0, 0, 155)
         }
     }
 
     pub const fn purple() -> Self {
         Self {
-            value: (255, 0, 255)
+            value: (155, 0, 155)
         }
     }
 
     pub const fn orange() -> Self {
         Self {
-            value: (255, 165, 0)
+            value: (155, 165, 0)
         }
     }
 

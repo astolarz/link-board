@@ -10,8 +10,10 @@ use crate::{
 };
 use log::{error, info, warn};
 use colored::Colorize;
+use map_display::MapDisplay;
 use std::str::FromStr;
 
+mod map_display;
 mod string_display;
 mod strip_display;
 
@@ -37,7 +39,8 @@ pub trait LinkBoardDisplay {
 #[derive(PartialEq)]
 enum DisplayType {
     StripDisplay,
-    StringDisplay
+    StringDisplay,
+    MapDisplay,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -51,7 +54,8 @@ impl FromStr for DisplayType {
         match parsed {
             // 0 is StripDisplay
             1 => Ok(DisplayType::StringDisplay),
-            _ => Ok(DisplayType::StripDisplay)
+            2 => Ok(DisplayType::MapDisplay),
+            _ => Ok(DisplayType::StripDisplay),
         }
     }
 }
@@ -59,6 +63,7 @@ impl FromStr for DisplayType {
 fn get_display_type() -> DisplayType {
     match env::display_type_int() {
         1 => DisplayType::StringDisplay,
+        2 => DisplayType::MapDisplay,
         _ => DisplayType::StripDisplay
     }
 }
@@ -68,6 +73,7 @@ pub fn get_display(adapter: impl SpiWriter + 'static) -> Box<dyn LinkBoardDispla
     let mut display: Box<dyn LinkBoardDisplay> = match get_display_type() {
         DisplayType::StripDisplay => Box::new(StripDisplay::new(adapter)),
         DisplayType::StringDisplay => Box::new(StringDisplay::new(adapter)),
+        DisplayType::MapDisplay => Box::new(MapDisplay::new(adapter)),
     };
     display.init_red().unwrap();
     display
