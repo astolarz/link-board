@@ -1,13 +1,15 @@
 use crate::{
-    constants::{Destination, LED_OFF, LN_1_STN_NAME_TO_LED_IDX, LN_2_STN_NAME_TO_LED_IDX},
+    constants::{Destination, LED_OFF, LN_1_STN_NAME_TO_LED_IDX, LN_1_STN_NAME_TO_LED_MAP_IDX, LN_2_STN_NAME_TO_LED_IDX, LN_2_STN_NAME_TO_LED_MAP_IDX},
     display::Route,
     env,
     led::Led
 };
 use log::{debug, warn};
 
-const AT_STATION: Led = Led::green();
-const BTW_STATION: Led = Led::dull_yellow();
+const AT_STATION_1LN: Led = Led::green();
+const AT_STATION_2LN: Led = Led::blue();
+const BTW_STATION_1LN: Led = Led::dull_yellow();
+const BTW_STATION_2LN: Led = Led::dull_cyan();
 
 #[derive(Debug, Clone)]
 pub struct Train {
@@ -77,18 +79,51 @@ impl Train {
         idx
     }
 
+    pub fn get_map_idx(&self) -> usize {
+        let next_stop_idx = self.next_stop_idx();
+        if self.at_station() {
+            next_stop_idx
+        } else {
+            match self.route {
+                Route::Line1 => next_stop_idx + 1,
+                Route::Line2 => next_stop_idx - 1, // TODO: need to accomodate part of 2 Line running on 1 Line section
+            }
+        }
+    }
+
+    fn next_stop_idx(&self) -> usize {
+        match self.route {
+            Route::Line1 => match self.destination {
+                Destination::AngleLake => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0,
+                Destination::LynnwoodCC => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1,
+                _ => panic!("wrong destination ({:?}) for route ({:?})", self.destination, self.route),
+            },
+            Route::Line2 => match self.destination {
+                Destination::SouthBellevue => LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0,
+                Destination::RedmondTech => LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1,
+                _ => panic!("wrong destination ({:?}) for route ({:?})", self.destination, self.route),
+            }
+        }
+    }
+
     pub fn at_station(&self) -> bool {
         return self.next_stop_time_offset == 0 && self.closest_stop_time_offset == 0
     }
 
     pub fn get_led_rgb(&self) -> Led {
         if self.at_station() {
-            AT_STATION
+            match self.route {
+                Route::Line1 => AT_STATION_1LN,
+                Route::Line2 => AT_STATION_2LN,
+            }
         } else {
             if env::stations_only() {
                 LED_OFF
             } else {
-                BTW_STATION
+                match self.route {
+                    Route::Line1 => BTW_STATION_1LN,
+                    Route::Line2 => BTW_STATION_2LN,
+                }
             }
         }
     }

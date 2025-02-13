@@ -145,3 +145,7 @@ fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, train
     info!("{} total trains", total);
     total
 }
+
+pub fn leds_between_stops(_route: Route, _destination: Destination, _next_stop_name: &str) -> usize {
+    1
+}
