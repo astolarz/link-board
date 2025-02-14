@@ -5,7 +5,7 @@ use crate::{
     constants::{Destination, LED_OFF, LED_RED, LN_1_STN_NAME_TO_LED_MAP_IDX, LN_2_STN_NAME_TO_LED_MAP_IDX}, display::LinkBoardDisplay, led::Led, spi_adapter::SpiWriter, train::Train
 };
 
-use super::{leds_between_stops, Route};
+use super::Route;
 
 const MAX_LEDS_FOR_STRIP: usize = 302;
 
@@ -25,12 +25,12 @@ impl MapDisplay {
         let mut led_strip: Vec<Led> = vec![LED_OFF; MAX_LEDS_FOR_STRIP];
         
         for (_, v) in LN_2_STN_NAME_TO_LED_MAP_IDX.entries() {
-            led_strip[v.0] = Led::blue();
-            led_strip[v.1] = Led::blue();
+            led_strip[v.0.0] = Led::blue();
+            led_strip[v.1.0] = Led::blue();
         }
         for (_, v) in LN_1_STN_NAME_TO_LED_MAP_IDX.entries() {
-            led_strip[v.0] = Led::green();
-            led_strip[v.1] = Led::green();
+            led_strip[v.0.0] = Led::green();
+            led_strip[v.1.0] = Led::green();
         }
 
         self.adapter.write_rgb(led_strip)
@@ -100,7 +100,7 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
                 final_idx = base_map_idx;
                 final_color = train.get_led_rgb();
             } else {
-                let leds_between_stops = leds_between_stops(train.route(), train.destination(), &train.next_stop_name);
+                let leds_between_stops = num_leds_between_stops(train.route(), train.destination(), &train.next_stop_name);
                 let mut done = false;
                 let is_ln1 = train.route() == Route::Line1;
                 // look for an open spot starting from the spot closest to the next stop
@@ -118,7 +118,8 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
                         break;
                     } 
                 }
-                // if no spot was found, starting from the back, look for the first non-cyan spot and set it to cyan.
+                // if no spot was found, starting from the back,
+                // look for the first non-cyan spot and set it to cyan.
                 // if all spots are already cyan, that's the best we can do.
                 if !done {
                     let range_back = if is_ln1 {
@@ -137,9 +138,11 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
             }
         }
         let colorized_dir = match train.destination() {
-            Destination::LynnwoodCC => "(N)".red(),
+            Destination::LynnwoodCC => match train.route() {
+                Route::Line1 => "(N)".red(),
+                Route::Line2 => "(W)".yellow(),
+            },
             Destination::AngleLake => "(S)".blue(),
-            Destination::SouthBellevue => "(W)".yellow(),
             Destination::RedmondTech => "(E)".green(),
         };
         info!("placing {} {} at index [{:3}]; next stop: {}", 
@@ -153,4 +156,15 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
         total += 1;
     }
     total
+}
+
+fn num_leds_between_stops(route: Route, destination: Destination, next_stop_name: &str) -> usize {
+    match destination {
+        Destination::LynnwoodCC => match route {
+            Route::Line1 => LN_1_STN_NAME_TO_LED_MAP_IDX[next_stop_name].1.1,
+            Route::Line2 => LN_2_STN_NAME_TO_LED_MAP_IDX[next_stop_name].1.1,
+        },
+        Destination::AngleLake => LN_1_STN_NAME_TO_LED_MAP_IDX[next_stop_name].0.1,
+        Destination::RedmondTech => LN_2_STN_NAME_TO_LED_MAP_IDX[next_stop_name].0.1,
+    }
 }

@@ -65,10 +65,7 @@ fn dir_id_to_destination(dir_id: Option<&str>, route: Route) -> Option<Destinati
             Route::Line1 => Some(Destination::AngleLake),
             Route::Line2 => Some(Destination::RedmondTech),
         },
-        Some("1") => match route {
-            Route::Line1 => Some(Destination::LynnwoodCC),
-            Route::Line2 => Some(Destination::SouthBellevue),
-        },
+        Some("1") => Some(Destination::LynnwoodCC),
         _ => {
             warn!("invalid directionId");
             None

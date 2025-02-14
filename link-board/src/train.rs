@@ -92,17 +92,13 @@ impl Train {
     }
 
     fn next_stop_idx(&self) -> usize {
-        match self.route {
-            Route::Line1 => match self.destination {
-                Destination::AngleLake => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0,
-                Destination::LynnwoodCC => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1,
-                _ => panic!("wrong destination ({:?}) for route ({:?})", self.destination, self.route),
+        match self.destination {
+            Destination::LynnwoodCC => match self.route {
+                Route::Line1 => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1.0,
+                Route::Line2 => LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0.0,
             },
-            Route::Line2 => match self.destination {
-                Destination::SouthBellevue => LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0,
-                Destination::RedmondTech => LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1,
-                _ => panic!("wrong destination ({:?}) for route ({:?})", self.destination, self.route),
-            }
+            Destination::AngleLake => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0.0,
+            Destination::RedmondTech => LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1.0,
         }
     }
 

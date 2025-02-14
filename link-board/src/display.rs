@@ -112,7 +112,6 @@ fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, train
         let idx = match train.destination() {
             Destination::LynnwoodCC => display.get_1n_init_idx() + train.get_relative_idx(),
             Destination::AngleLake => display.get_1s_init_idx() + train.get_relative_idx(),
-            Destination::SouthBellevue => todo!(),
             Destination::RedmondTech => todo!(),
         };
 
@@ -144,8 +143,4 @@ fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, train
 
     info!("{} total trains", total);
     total
-}
-
-pub fn leds_between_stops(_route: Route, _destination: Destination, _next_stop_name: &str) -> usize {
-    1
 }
