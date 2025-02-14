@@ -1,3 +1,5 @@
+use std::iter::Map;
+
 use colored::Colorize;
 use log::info;
 
@@ -23,16 +25,7 @@ impl MapDisplay {
     #[allow(dead_code)]
     fn show_static_stations(&mut self) -> Result<(), String> {
         let mut led_strip: Vec<Led> = vec![LED_OFF; MAX_LEDS_FOR_STRIP];
-        
-        for (_, v) in LN_2_STN_NAME_TO_LED_MAP_IDX.entries() {
-            led_strip[v.0.0] = Led::blue();
-            led_strip[v.1.0] = Led::blue();
-        }
-        for (_, v) in LN_1_STN_NAME_TO_LED_MAP_IDX.entries() {
-            led_strip[v.0.0] = Led::green();
-            led_strip[v.1.0] = Led::green();
-        }
-
+        write_stations_as_dim_white(&mut led_strip);
         self.adapter.write_rgb(led_strip)
     }
 }
@@ -42,6 +35,9 @@ impl LinkBoardDisplay for MapDisplay {
         info!("updating map display");
 
         let mut led_strip: Vec<Led> = vec![LED_OFF; MAX_LEDS_FOR_STRIP];
+
+        // set stations to purple as a placemarker
+        write_stations_as_dim_white(&mut led_strip);
 
         index_trains(&mut led_strip, trains);
 
@@ -80,13 +76,18 @@ impl LinkBoardDisplay for MapDisplay {
 
 fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
     let mut total = 0;
+
     for train in trains {
 
         let mut final_idx = 0;
         let mut final_color = LED_OFF;
 
         let base_map_idx = train.get_map_idx();
-        let current_color = led_strip[base_map_idx];
+        let current_color = if led_strip[base_map_idx] == Led::dull_white() {
+            LED_OFF
+        } else {
+            led_strip[base_map_idx]
+        };
 
         if train.at_station() {
             final_idx = base_map_idx;
@@ -137,6 +138,8 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
                 }
             }
         }
+
+        // print debug info
         let colorized_dir = match train.destination() {
             Destination::LynnwoodCC => match train.route() {
                 Route::Line1 => "(N)".red(),
@@ -152,9 +155,13 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
             train.next_stop_name
         );
 
+        // actually write the data
         led_strip[final_idx] = final_color;
         total += 1;
     }
+
+    info!("placed {} trains total", total);
+
     total
 }
 
@@ -166,5 +173,16 @@ fn num_leds_between_stops(route: Route, destination: Destination, next_stop_name
         },
         Destination::AngleLake => LN_1_STN_NAME_TO_LED_MAP_IDX[next_stop_name].0.1,
         Destination::RedmondTech => LN_2_STN_NAME_TO_LED_MAP_IDX[next_stop_name].0.1,
+    }
+}
+
+fn write_stations_as_dim_white(led_strip: &mut Vec<Led>) {
+    for (_, v) in LN_2_STN_NAME_TO_LED_MAP_IDX.entries() {
+        led_strip[v.0.0] = Led::dull_white();
+        led_strip[v.1.0] = Led::dull_white();
+    }
+    for (_, v) in LN_1_STN_NAME_TO_LED_MAP_IDX.entries() {
+        led_strip[v.0.0] = Led::dull_white();
+        led_strip[v.1.0] = Led::dull_white();
     }
 }

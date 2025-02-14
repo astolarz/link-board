@@ -3,6 +3,15 @@ pub struct Led {
     value: (u8, u8, u8)
 }
 
+const ULTRA_DIM: u8 = 1;
+const DIM_MAJOR: u8 = 20;
+const DIM_MINOR: u8 = 10;
+const DIM_EQ_MIX: u8 = DIM_MAJOR;
+const REG_MAJOR: u8 = 30;
+const REG_MINOR: u8 = 20;
+const REG_EQ_MIX: u8 = REG_MAJOR;
+
+
 impl Led {
     pub fn r(&self) -> u8 {
         self.value.0
@@ -35,67 +44,73 @@ impl Led {
 
     pub const fn red() -> Self {
         Self {
-            value: (155, 0, 0)
+            value: (REG_MAJOR, 0, 0)
         }
     }
 
     pub const fn green() -> Self {
         Self {
-            value: (0, 155, 0)
+            value: (0, REG_MAJOR, 0)
         }
     }
 
     pub const fn dull_green() -> Self {
         Self {
-            value: (0, 50, 0)
+            value: (0, DIM_MAJOR, 0)
         }
     }
 
     pub const fn blue() -> Self {
         Self {
-            value: (0, 0, 155)
+            value: (0, 0, REG_MAJOR)
         }
     }
 
     pub const fn dull_blue() -> Self {
         Self {
-            value: (0, 0, 50)
+            value: (0, 0, DIM_MAJOR)
         }
     }
 
     pub const fn cyan() -> Self {
         Self {
-            value: (0, 155, 155)
+            value: (0, REG_EQ_MIX, REG_EQ_MIX)
         }
     }
 
     pub const fn dull_cyan() -> Self {
         Self {
-            value: (0, 50, 50)
+            value: (0, DIM_EQ_MIX, DIM_EQ_MIX)
         }
     }
 
     pub const fn purple() -> Self {
         Self {
-            value: (155, 0, 155)
+            value: (REG_EQ_MIX, 0, REG_EQ_MIX)
         }
     }
 
     pub const fn orange() -> Self {
         Self {
-            value: (155, 165, 0)
+            value: (REG_MINOR, REG_MAJOR, 0)
         }
     }
 
     pub const fn dull_orange() -> Self {
         Self {
-            value: (50, 70, 0)
+            value: (DIM_MINOR, DIM_MAJOR, 0)
         }
     }
 
     pub const fn dull_yellow() -> Self {
         Self {
-            value: (50, 50, 0)
+            value: (DIM_EQ_MIX, DIM_EQ_MIX, 0)
+        }
+    }
+
+    pub const fn dull_white() -> Self {
+        Self {
+            value: (ULTRA_DIM, ULTRA_DIM, ULTRA_DIM)
         }
     }
 
