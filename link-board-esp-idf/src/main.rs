@@ -11,7 +11,7 @@ mod spi_adapter;
 mod data_retriever;
 mod wifi;
 
-const LOOP_PAUSE: u32 = 5000;
+const LOOP_PAUSE: u32 = 15000;
 
 static CS: IsrCriticalSection = IsrCriticalSection::new();
 
