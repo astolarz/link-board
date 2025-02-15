@@ -86,7 +86,13 @@ impl Train {
         } else {
             match self.route {
                 Route::Line1 => next_stop_idx + 1,
-                Route::Line2 => next_stop_idx - 1, // TODO: need to accomodate part of 2 Line running on 1 Line section
+                Route::Line2 => {
+                    if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&self.next_stop_name) {
+                        next_stop_idx + 1
+                    } else {
+                        next_stop_idx - 1
+                    }
+                },
             }
         }
     }
