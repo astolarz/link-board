@@ -129,10 +129,13 @@ pub const LN_2_STN_NAME_TO_LED_MAP_IDX: phf::Map<&'static str, ((usize, usize), 
     "Downtown Redmond" =>       ((300, 1), (212, 1)),
 };
 
+pub const CID: &str = "Int'l Dist/Chinatown";
+pub const JUDKINS_PARK: &str = "Judkins Park";
+
 // size of station map * 2 for one LED in between, plus one more for beginning buffer.
 pub const PIXELS_FOR_STATIONS: usize = (LN_1_STN_NAME_TO_LED_IDX.len() * 2) - 1;
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Eq, Debug, Default, Hash, PartialEq)]
 pub enum Destination {
     #[default]
     LynnwoodCC,

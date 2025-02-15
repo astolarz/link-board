@@ -20,6 +20,7 @@ esp-idf-hal = "0.45.2"
 esp-idf-svc = { version = "0.51", features = ["critical-section", "embassy-time-driver", "embassy-sync"] }
 link-board = { version = "0.0.1", path = "../link-board", default-features = false, features = ["esp32"] }
 log = "0.4"
+priority-queue = "2.1.2"
 smart-leds = "0.4.0"
 smol = "2.0.2"
 ws2812-spi = { version = "0.5.0", features = ["mosi_idle_high"] }

@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub struct Led {
     value: (u8, u8, u8)
 }
@@ -13,6 +13,12 @@ const REG_EQ_MIX: u8 = REG_MAJOR;
 
 
 impl Led {
+    pub fn from(r: u8, g: u8, b: u8) -> Self {
+        Self {
+            value: (r, g, b)
+        }
+    }
+
     pub fn r(&self) -> u8 {
         self.value.0
     }
@@ -25,7 +31,6 @@ impl Led {
         self.value.2
     }
 
-    #[allow(dead_code)]
     pub fn eq(&self, other: &Self) -> bool {
         self.value == other.value
     }
@@ -114,7 +119,6 @@ impl Led {
         }
     }
 
-    #[allow(dead_code)]
     pub const fn as_tuple(&self) -> (u8, u8, u8) {
         self.value
     }

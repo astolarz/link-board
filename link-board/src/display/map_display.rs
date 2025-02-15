@@ -1,10 +1,10 @@
-use std::iter::Map;
-
+use std::collections::HashMap;
 use colored::Colorize;
 use log::info;
+use priority_queue::PriorityQueue;
 
 use crate::{
-    constants::{Destination, LED_OFF, LED_RED, LN_1_STN_NAME_TO_LED_MAP_IDX, LN_2_STN_NAME_TO_LED_MAP_IDX}, display::LinkBoardDisplay, led::Led, spi_adapter::SpiWriter, train::Train
+    constants::{Destination, CID, LED_OFF, LED_RED, LN_1_STN_NAME_TO_LED_MAP_IDX, LN_2_STN_NAME_TO_LED_MAP_IDX}, display::LinkBoardDisplay, led::Led, spi_adapter::SpiWriter, train::Train
 };
 
 use super::Route;
@@ -77,6 +77,11 @@ impl LinkBoardDisplay for MapDisplay {
 fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
     let mut total = 0;
 
+    // map of `(stop name, Destination, index before next stop)` to `Destination prioritised by time offset to destination)`
+    // the index is used to differentiate where to place Lynnwood-bound trains headed for the CID station,
+    // which is where the 1 and 2 lines merge.
+    let mut in_betweens: HashMap<(String, Destination, usize), PriorityQueue<(Route, Led), i64>> = Default::default();
+
     for train in trains {
 
         let mut final_idx = 0;
@@ -96,68 +101,109 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
             } else if current_color != train.get_led_rgb() {
                 final_color = Led::purple();
             }
+            log_train_placement(train.destination(), train.route(), &train.next_stop_name, final_idx, &final_color, None);
         } else {
-            if current_color == LED_OFF {
-                final_idx = base_map_idx;
-                final_color = train.get_led_rgb();
+            if let Some(pq) = in_betweens.get_mut(&(train.next_stop_name.clone(), train.destination(), train.idx_before_next_stop())) {
+                pq.push((train.route(), train.get_led_rgb()), train.next_stop_time_offset());
             } else {
-                let leds_between_stops = num_leds_between_stops(train.route(), train.destination(), &train.next_stop_name);
-                let mut done = false;
-                let is_ln1 = train.route() == Route::Line1;
-                // look for an open spot starting from the spot closest to the next stop
-                let range_forward = if is_ln1 {
-                    0..leds_between_stops
-                } else {
-                    leds_between_stops..0
-                };
-                for i in range_forward {
-                    let idx = if is_ln1 { base_map_idx + i } else { base_map_idx - i };
-                    if led_strip[idx] == LED_OFF {
-                        final_idx = idx;
-                        final_color = train.get_led_rgb();
-                        done = true;
-                        break;
-                    } 
-                }
-                // if no spot was found, starting from the back,
-                // look for the first non-cyan spot and set it to cyan.
-                // if all spots are already cyan, that's the best we can do.
-                if !done {
-                    let range_back = if is_ln1 {
-                        leds_between_stops..0
-                    } else {
-                        0..leds_between_stops
-                    };
-                    for i in range_back {
-                        let idx = if is_ln1 { base_map_idx + i } else { base_map_idx - i };
-                        if led_strip[idx] != Led::dull_orange() {
-                            final_idx = idx;
-                            final_color = Led::dull_orange();
-                        }
-                    }
-                }
+                let mut pq = PriorityQueue::new();
+                pq.push((train.route(), train.get_led_rgb()), train.next_stop_time_offset());
+                in_betweens.insert((train.next_stop_name.clone(), train.destination(), train.idx_before_next_stop()), pq.clone());
             }
         }
-
-        // print debug info
-        let colorized_dir = match train.destination() {
-            Destination::LynnwoodCC => match train.route() {
-                Route::Line1 => "(N)".red(),
-                Route::Line2 => "(W)".yellow(),
-            },
-            Destination::AngleLake => "(S)".blue(),
-            Destination::RedmondTech => "(E)".green(),
-        };
-        info!("placing {} {} at index [{:3}]; next stop: {}", 
-            colorized_dir,
-            "train".truecolor(final_color.r(), final_color.g(), final_color.b()),
-            final_idx,
-            train.next_stop_name
-        );
 
         // actually write the data
         led_strip[final_idx] = final_color;
         total += 1;
+    }
+
+    // handle trains in between stations
+    for ((next_stop_name, destination, idx_before_next_stop), mut queue) in in_betweens {
+        if let Some(((route, _), _)) = queue.peek() {
+            let route = route.clone();
+            let leds_between_stops = num_leds_between_stops(route, destination, &next_stop_name);
+
+            if leds_between_stops >= queue.len() {
+                // easy case: enough leds available to handle all trains
+                let mut idx = idx_before_next_stop;
+                while !queue.is_empty() {
+                    if let Some(((route, led), _)) = queue.pop() {
+                        led_strip[idx] = led;
+                        log_train_placement(destination, route, &next_stop_name, idx, &led_strip[idx], None);
+                        idx = get_next_inbetween_idx(idx, route, destination, &next_stop_name);
+                    }
+                }
+            } else if queue.len() >= leds_between_stops * 2 {
+                // other easy case: every spot will be at least doubled, so just color them all with the 
+                // 'doubled spot' color
+                for idx in idx_before_next_stop..(idx_before_next_stop + leds_between_stops) {
+                    led_strip[idx] = Led::dull_orange();
+                    log_train_placement(destination, route, &next_stop_name, idx, &led_strip[idx], Some(" [doubled]"));
+                }
+            } else {
+                // hard case: there are more trains than available spots, but not all spots need to be doubled
+                let mut num_trains = queue.len();
+                let excess_trains = num_trains % leds_between_stops;
+                let single_color_trains = leds_between_stops - excess_trains;
+                assert_eq!(num_trains, excess_trains + single_color_trains);
+
+                // fill up initial LEDs
+                let range = match destination {
+                    Destination::LynnwoodCC => match route {
+                        Route::Line1 => idx_before_next_stop..(idx_before_next_stop + single_color_trains),
+                        Route::Line2 => {
+                            if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&next_stop_name) {
+                                idx_before_next_stop..(idx_before_next_stop + single_color_trains)
+                            } else {
+                                idx_before_next_stop..(idx_before_next_stop - single_color_trains)
+                            }
+                        },
+                    },
+                    Destination::AngleLake => idx_before_next_stop..(idx_before_next_stop + single_color_trains),
+                    Destination::RedmondTech => {
+                        if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&next_stop_name) {
+                            idx_before_next_stop..(idx_before_next_stop + single_color_trains)
+                        } else {
+                            idx_before_next_stop..(idx_before_next_stop - single_color_trains)
+                        }
+                    },
+                };
+                for idx in range {
+                    if let Some(((_, led), _)) = queue.pop() {
+                        led_strip[idx] = led;
+                        num_trains = num_trains - 1;
+                        log_train_placement(destination, route, &next_stop_name, idx, &led_strip[idx], None);
+                    }
+                }
+
+                // fill the rest with the doubled-up color
+                let range = match destination {
+                    Destination::LynnwoodCC => match route {
+                        Route::Line1 => (idx_before_next_stop + single_color_trains)..(idx_before_next_stop + leds_between_stops),
+                        Route::Line2 => {
+                            if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&next_stop_name) {
+                                (idx_before_next_stop + single_color_trains)..(idx_before_next_stop + leds_between_stops)
+                            } else {
+                                (idx_before_next_stop - single_color_trains)..(idx_before_next_stop - leds_between_stops)
+                            }
+                        },
+                    },
+                    Destination::AngleLake => (idx_before_next_stop + single_color_trains)..(idx_before_next_stop + leds_between_stops),
+                    Destination::RedmondTech => {
+                        if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&next_stop_name) {
+                            (idx_before_next_stop + single_color_trains)..(idx_before_next_stop + leds_between_stops)
+                        } else {
+                            (idx_before_next_stop - single_color_trains)..(idx_before_next_stop - leds_between_stops)
+                        }
+                    },
+                };
+                for idx in range {
+                    led_strip[idx] = Led::dull_orange();
+                    log_train_placement(destination, route, &next_stop_name, idx, &led_strip[idx], Some(" [doubled]"));
+                }
+            }
+
+        }
     }
 
     info!("placed {} trains total", total);
@@ -184,5 +230,65 @@ fn write_stations_as_dim_white(led_strip: &mut Vec<Led>) {
     for (_, v) in LN_1_STN_NAME_TO_LED_MAP_IDX.entries() {
         led_strip[v.0.0] = Led::dull_white();
         led_strip[v.1.0] = Led::dull_white();
+    }
+}
+
+fn log_train_placement(
+    destination: Destination,
+    route: Route,
+    next_stop_name: &String,
+    idx: usize,
+    color: &Led,
+    optional_message: Option<&str>
+) {
+    let colorized_dir = match destination {
+        Destination::LynnwoodCC => match route {
+            Route::Line1 => "(N)".red(),
+            Route::Line2 => "(W)".yellow(),
+        },
+        Destination::AngleLake => "(S)".blue(),
+        Destination::RedmondTech => "(E)".green(),
+    };
+    let r = if color.r() == 0 { 0 } else { color.r().saturating_add(200) };
+    let g = if color.g() == 0 { 0 } else { color.g().saturating_add(200) };
+    let b = if color.b() == 0 { 0 } else { color.b().saturating_add(200) };
+
+    info!("placing {} {} at index [{:3}]; next stop: {}{}", 
+        colorized_dir,
+        "train".truecolor(r, g, b),
+        idx,
+        next_stop_name,
+        if let Some(msg) = optional_message {
+            msg
+        } else {
+            ""
+        }
+    );
+}
+
+fn get_next_inbetween_idx(idx: usize, route: Route, destination: Destination, next_stop_name: &String) -> usize {
+    match destination {
+        Destination::LynnwoodCC => match route {
+            Route::Line1 => idx + 1,
+            Route::Line2 => {
+                if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&next_stop_name) {
+                    if next_stop_name == CID {
+                        idx - 1
+                    } else {
+                        idx + 1
+                    }
+                } else {
+                    idx - 1
+                }    
+            },
+        },
+        Destination::AngleLake => idx + 1,
+        Destination::RedmondTech => {
+            if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&next_stop_name) {
+                idx + 1
+            } else {
+                idx - 1
+            }
+        },
     }
 }

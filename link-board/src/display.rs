@@ -17,7 +17,7 @@ mod map_display;
 mod string_display;
 mod strip_display;
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, PartialEq)]
 pub enum Route {
     #[default]
     Line1,

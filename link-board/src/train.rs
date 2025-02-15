@@ -1,5 +1,5 @@
 use crate::{
-    constants::{Destination, LED_OFF, LN_1_STN_NAME_TO_LED_IDX, LN_1_STN_NAME_TO_LED_MAP_IDX, LN_2_STN_NAME_TO_LED_IDX, LN_2_STN_NAME_TO_LED_MAP_IDX},
+    constants::{Destination, CID, JUDKINS_PARK, LED_OFF, LN_1_STN_NAME_TO_LED_IDX, LN_1_STN_NAME_TO_LED_MAP_IDX, LN_2_STN_NAME_TO_LED_IDX, LN_2_STN_NAME_TO_LED_MAP_IDX},
     display::Route,
     env,
     led::Led
@@ -102,6 +102,35 @@ impl Train {
         }
     }
 
+    /// returns the index of the LED immediately before the next stop
+    pub fn idx_before_next_stop(&self) -> usize {
+        match self.destination {
+            Destination::LynnwoodCC => {
+                match self.route {
+                    Route::Line1 => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1.0 + 1,
+                    Route::Line2 => {
+                        if self.next_stop_name == CID {
+                            let idx = LN_2_STN_NAME_TO_LED_MAP_IDX[JUDKINS_PARK].1.0 + LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1.1;
+                            assert_eq!(idx, 254);
+                            idx
+                        } else {
+                            LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0.0
+                        }
+                    },
+                }
+            },
+            Destination::AngleLake => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0.0 + 1,
+            Destination::RedmondTech => {
+                // Lynnwood to CID, add 1; Judkins Park to Redmond, subtract 1
+                if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&self.next_stop_name) {
+                    LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1.0 + 1
+                } else {
+                    LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1.0 - 1
+                }
+            },
+        }
+    }
+
     pub fn at_station(&self) -> bool {
         return self.next_stop_time_offset == 0 && self.closest_stop_time_offset == 0
     }
@@ -123,4 +152,27 @@ impl Train {
             }
         }
     }
+
+    pub fn next_stop_time_offset(&self) -> i64 {
+        self.next_stop_time_offset
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cid_idx_before_next_stop() {
+        let train = Train {
+            next_stop_name: String::from(CID),
+            route: Route::Line2,
+            destination: Destination::LynnwoodCC,
+            next_stop_time_offset: 234,
+            closest_stop_time_offset: 2134,
+        };
+
+        assert_eq!(train.idx_before_next_stop(), 254);
+    }
+
 }
