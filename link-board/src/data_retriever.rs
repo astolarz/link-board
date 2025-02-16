@@ -21,7 +21,7 @@ pub trait DataRetriever {
     }
 }
 
-#[cfg(feature = "native")]
+#[cfg(feature = "headless")]
 pub mod dr {
     use crate::{data_retriever::DataRetriever, display::Route, env, error::Error};
 
