@@ -3,7 +3,7 @@ pub struct Led {
     value: (u8, u8, u8)
 }
 
-const ULTRA_DIM: u8 = 1;
+const ULTRA_DIM: u8 = 2;
 const DIM_MAJOR: u8 = 20;
 const DIM_MINOR: u8 = 10;
 const DIM_EQ_MIX: u8 = DIM_MAJOR;
@@ -47,6 +47,34 @@ impl Led {
         }
     }
 
+    pub const fn empty_station() -> Self {
+        Self::dull_white()
+    }
+
+    pub const fn ln_1_at_station() -> Self {
+        Self::green()
+    }
+
+    pub const fn ln_1_between_stations() -> Self {
+        Self::dull_yellow()
+    }
+
+    pub const fn ln_2_at_station() -> Self {
+        Self::blue()
+    }
+
+    pub const fn ln_2_between_stations() -> Self {
+        Self::dull_purple()
+    }
+
+    pub const fn at_station_mixed() -> Self {
+        Self::purple()
+    }
+
+    pub const fn between_stations_mixed() -> Self {
+        Self::dull_orange()
+    }
+
     pub const fn red() -> Self {
         Self {
             value: (REG_MAJOR, 0, 0)
@@ -85,13 +113,19 @@ impl Led {
 
     pub const fn dull_cyan() -> Self {
         Self {
-            value: (0, DIM_EQ_MIX, DIM_EQ_MIX)
+            value: (5, DIM_MINOR, DIM_MAJOR)
         }
     }
 
     pub const fn purple() -> Self {
         Self {
             value: (REG_EQ_MIX, 0, REG_EQ_MIX)
+        }
+    }
+
+    pub const fn dull_purple() -> Self {
+        Self {
+            value: (DIM_EQ_MIX, 0, DIM_EQ_MIX)
         }
     }
 

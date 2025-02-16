@@ -6,11 +6,6 @@ use crate::{
 };
 use log::{debug, warn};
 
-const AT_STATION_1LN: Led = Led::green();
-const AT_STATION_2LN: Led = Led::blue();
-const BTW_STATION_1LN: Led = Led::dull_yellow();
-const BTW_STATION_2LN: Led = Led::dull_cyan();
-
 #[derive(Debug, Clone)]
 pub struct Train {
     pub next_stop_name: String,
@@ -144,16 +139,16 @@ impl Train {
     pub fn get_led_rgb(&self) -> Led {
         if self.at_station() {
             match self.route {
-                Route::Line1 => AT_STATION_1LN,
-                Route::Line2 => AT_STATION_2LN,
+                Route::Line1 => Led::ln_1_at_station(),
+                Route::Line2 => Led::ln_2_at_station(),
             }
         } else {
             if env::stations_only() {
                 LED_OFF
             } else {
                 match self.route {
-                    Route::Line1 => BTW_STATION_1LN,
-                    Route::Line2 => BTW_STATION_2LN,
+                    Route::Line1 => Led::ln_1_between_stations(),
+                    Route::Line2 => Led::ln_2_between_stations(),
                 }
             }
         }

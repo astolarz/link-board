@@ -88,7 +88,7 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
         let mut final_color = LED_OFF;
 
         let base_map_idx = train.get_map_idx();
-        let current_color = if led_strip[base_map_idx] == Led::dull_white() {
+        let current_color = if led_strip[base_map_idx] == Led::empty_station() {
             LED_OFF
         } else {
             led_strip[base_map_idx]
@@ -99,7 +99,7 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
             if current_color == LED_OFF {
                 final_color = train.get_led_rgb();
             } else if current_color != train.get_led_rgb() {
-                final_color = Led::purple();
+                final_color = Led::at_station_mixed();
             }
             log_train_placement(train.destination(), train.route(), &train.next_stop_name, final_idx, &final_color, None);
         } else {
@@ -137,7 +137,7 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
                 // other easy case: every spot will be at least doubled, so just color them all with the 
                 // 'doubled spot' color
                 for idx in idx_before_next_stop..(idx_before_next_stop + leds_between_stops) {
-                    led_strip[idx] = Led::dull_orange();
+                    led_strip[idx] = Led::between_stations_mixed();
                     log_train_placement(destination, route, &next_stop_name, idx, &led_strip[idx], Some(" [doubled]"));
                 }
             } else {
@@ -198,7 +198,7 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
                     },
                 };
                 for idx in range {
-                    led_strip[idx] = Led::dull_orange();
+                    led_strip[idx] = Led::between_stations_mixed();
                     log_train_placement(destination, route, &next_stop_name, idx, &led_strip[idx], Some(" [doubled]"));
                 }
             }
@@ -224,12 +224,12 @@ fn num_leds_between_stops(route: Route, destination: Destination, next_stop_name
 
 fn write_stations_as_dim_white(led_strip: &mut Vec<Led>) {
     for (_, v) in LN_2_STN_NAME_TO_LED_MAP_IDX.entries() {
-        led_strip[v.0.0] = Led::dull_white();
-        led_strip[v.1.0] = Led::dull_white();
+        led_strip[v.0.0] = Led::empty_station();
+        led_strip[v.1.0] = Led::empty_station();
     }
     for (_, v) in LN_1_STN_NAME_TO_LED_MAP_IDX.entries() {
-        led_strip[v.0.0] = Led::dull_white();
-        led_strip[v.1.0] = Led::dull_white();
+        led_strip[v.0.0] = Led::empty_station();
+        led_strip[v.1.0] = Led::empty_station();
     }
 }
 
