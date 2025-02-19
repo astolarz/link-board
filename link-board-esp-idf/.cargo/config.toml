@@ -10,7 +10,7 @@ rustflags = [ "--cfg",  "espidf_time64"]
 
 [target.xtensa-esp32s3-espidf]
 linker = "ldproxy"
-runner = "espflash flash --monitor"
+runner = "espflash flash --monitor --flash-size 16mb"
 rustflags = [ "--cfg",  "espidf_time64"]
 
 [unstable]
