@@ -1,5 +1,7 @@
 # Link Board
-This is a project to display real time Link light rail train locations on WS2812-compatible LED displays, such as NeoPixels, written entirely in Rust. It uses the One Bus Away API to query the location data for the trains, which requires an API key (see requirements). 
+This is a project to display real time Link light rail train locations on WS2812-compatible LED displays, such as NeoPixels, written entirely in Rust. It uses the One Bus Away API to query the location data for the trains, which requires an API key (see requirements).
+
+<img src="./example_display.jpg" width="300" title="Example Link display" alt="Example display of NeoPixel LEDs behind acrylic">
 
 This was originally written to run on a Raspberry Pi, but I have since switched to running it on ESP32-based microprocessors. It will likely still run on a Raspberry Pi, but I have not tested it on one in a while, so use at your own risk. That said, an ESP32, Raspberry Pi, or even WS2812/NeoPixel is not required to run this code, as there is a rudimentary command line output of the light rail data.
 
