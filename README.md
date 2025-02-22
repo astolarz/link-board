@@ -13,6 +13,9 @@ When I was just getting started learning Rust, [waldenhillegass](https://github.
 
 ## Hardware
 
+### None ("headless")
+A minimal CLI rendering of the data is implemented so technically no additional hardware is required for this project.
+
 ### Chips
 I have been running this on a ESP32-WROOM-32 and ESP32-S3-WROOM with no issues. I expect this should work with any ESP32 variant, though build targets may need to be adjusted.
 
