@@ -25,7 +25,7 @@ I next considered using individual through-hole NeoPixels, but decided that was 
 The important thing to get any of these display types working is that they support the WS2812 format. Other than that, it doesn't matter if it's a stip, strand, individual through-hole LEDs, or whatever. The "map display" is indexed to the cut-up and re-soldered LED strips that I hacked together for my display, so you will likely want to edit the index values for your own situation. I basically cut off a bit of the strip that fit my design and coded it up to fit afterward. In the future I may convert my hard-coded values to something that reads in a CSV or other format in order to be more generic.
 
 ## Features
-- `default`: headless
+- `default`: `headless`
 - `headless`: Meant to run on hardware without LEDs, displaying the data on the command line only as a row of colored rectangles.
 - `rpi`: (untested in latest) Run on Raspberry Pi hardware with data connected to MOSI pin.
 - `esp32`: Enables running on a ESP32 based microcontroller. Tested on ESP32 and ESP32-S3 hardware.
