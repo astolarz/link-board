@@ -1,7 +1,7 @@
 # Uncomment the target for your chip
 [build]
-target = "xtensa-esp32s3-espidf"
-#target = "xtensa-esp32-espidf"
+#target = "xtensa-esp32s3-espidf"
+target = "xtensa-esp32-espidf"
 
 [target.xtensa-esp32-espidf]
 linker = "ldproxy"
@@ -10,6 +10,7 @@ rustflags = [ "--cfg",  "espidf_time64"]
 
 [target.xtensa-esp32s3-espidf]
 linker = "ldproxy"
+# esp32s3 fails to compile without specifying the flash size
 runner = "espflash flash --monitor --flash-size 16mb"
 rustflags = [ "--cfg",  "espidf_time64"]
 
