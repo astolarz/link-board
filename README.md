@@ -5,6 +5,9 @@ This is a project to display real time Link light rail train locations on WS2812
 
 This was originally written to run on a Raspberry Pi, but I have since switched to running it on ESP32-based microprocessors. It will likely still run on a Raspberry Pi, but I have not tested it on one in a while, so use at your own risk. That said, an ESP32, Raspberry Pi, or even WS2812/NeoPixel is not required to run this code, as there is a rudimentary command line output of the light rail data.
 
+## Inspiration
+When I was just getting started learning Rust, [waldenhillegass](https://github.com/waldenhillegass) posted their [link-map](https://github.com/waldenhillegass/link-map) project to the Seattle subreddit, and thought "I should do that, but in Rust!", so I did :)
+
 ## Requirements
 - A Puget Sound One Bus Away API key. Information on how to obtain a key can be found [here](https://www.soundtransit.org/help-contacts/business-information/open-transit-data-otd). The site says to allow for up to 20 business days to get a key, but I got mine in about 20 miuntes (during business hours). YMMV. API documentation can be found [here](https://developer.onebusaway.org/api/where).
 
@@ -44,5 +47,5 @@ To get working on Raspberry Pi (note: untested in a while):
 - create file `/etc/modprobe.d/spidev.conf` with contents `options spidev bufsiz=65536`
 - append `spidev.bufsiz=65536` to `/boot/firmware/cmdline.txt`
 
-### Acknowledgements
+## Acknowledgements
 The ESP32 wifi connection code comes from the [esp-rs std-training](https://github.com/esp-rs/std-training/blob/main/common/lib/wifi/src/lib.rs) repo.
