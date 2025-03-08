@@ -52,19 +52,27 @@ impl Led {
     }
 
     pub const fn ln_1_at_station() -> Self {
-        Self::green()
+        Self {
+            value: (61, 174, 43)
+        }
     }
 
     pub const fn ln_1_between_stations() -> Self {
-        Self::dull_yellow()
+        Self {
+            value: (6, 17, 4)
+        }
     }
 
     pub const fn ln_2_at_station() -> Self {
-        Self::blue()
+        Self {
+            value: (0, 160, 223)
+        }
     }
 
     pub const fn ln_2_between_stations() -> Self {
-        Self::dull_purple()
+        Self {
+            value: (0, 16, 22)
+        }
     }
 
     pub const fn at_station_mixed() -> Self {
