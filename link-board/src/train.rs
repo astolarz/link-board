@@ -98,8 +98,8 @@ impl Train {
                 Route::Line1 => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1.0,
                 Route::Line2 => LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0.0,
             },
-            Destination::AngleLake => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0.0,
-            Destination::RedmondTech => LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1.0,
+            Destination::FederalWayDT => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0.0,
+            Destination::RedmondDT => LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1.0,
         }
     }
 
@@ -120,8 +120,8 @@ impl Train {
                     },
                 }
             },
-            Destination::AngleLake => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0.0 + 1,
-            Destination::RedmondTech => {
+            Destination::FederalWayDT => LN_1_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].0.0 + 1,
+            Destination::RedmondDT => {
                 // Lynnwood to CID, add 1; Judkins Park to Redmond, subtract 1
                 if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&self.next_stop_name) {
                     LN_2_STN_NAME_TO_LED_MAP_IDX[&self.next_stop_name].1.0 + 1

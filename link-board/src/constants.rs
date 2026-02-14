@@ -139,8 +139,8 @@ pub const PIXELS_FOR_STATIONS: usize = (LN_1_STN_NAME_TO_LED_IDX.len() * 2) - 1;
 pub enum Destination {
     #[default]
     LynnwoodCC,
-    AngleLake,
-    RedmondTech,
+    FederalWayDT,
+    RedmondDT,
 }
 
 pub const LED_OFF: Led = Led::off();

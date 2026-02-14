@@ -71,8 +71,8 @@ fn dir_id_to_destination(dir_id: Option<&str>, route: Route) -> Option<Destinati
     // directionId can only be 0 or 1 per GTFS docs
     match dir_id {
         Some("0") => match route {
-            Route::Line1 => Some(Destination::AngleLake),
-            Route::Line2 => Some(Destination::RedmondTech),
+            Route::Line1 => Some(Destination::FederalWayDT),
+            Route::Line2 => Some(Destination::RedmondDT),
         },
         Some("1") => Some(Destination::LynnwoodCC),
         _ => {

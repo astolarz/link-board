@@ -111,8 +111,8 @@ fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, train
 
         let idx = match train.destination() {
             Destination::LynnwoodCC => display.get_1n_init_idx() + train.get_relative_idx(),
-            Destination::AngleLake => display.get_1s_init_idx() + train.get_relative_idx(),
-            Destination::RedmondTech => todo!(),
+            Destination::FederalWayDT => display.get_1s_init_idx() + train.get_relative_idx(),
+            Destination::RedmondDT => todo!(),
         };
 
         let current_color = led_strip[idx];

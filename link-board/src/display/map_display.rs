@@ -159,8 +159,8 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
                             }
                         },
                     },
-                    Destination::AngleLake => idx_before_next_stop..(idx_before_next_stop + single_color_trains),
-                    Destination::RedmondTech => {
+                    Destination::FederalWayDT => idx_before_next_stop..(idx_before_next_stop + single_color_trains),
+                    Destination::RedmondDT => {
                         if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&next_stop_name) {
                             idx_before_next_stop..(idx_before_next_stop + single_color_trains)
                         } else {
@@ -188,8 +188,8 @@ fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
                             }
                         },
                     },
-                    Destination::AngleLake => (idx_before_next_stop + single_color_trains)..(idx_before_next_stop + leds_between_stops),
-                    Destination::RedmondTech => {
+                    Destination::FederalWayDT => (idx_before_next_stop + single_color_trains)..(idx_before_next_stop + leds_between_stops),
+                    Destination::RedmondDT => {
                         if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&next_stop_name) {
                             (idx_before_next_stop + single_color_trains)..(idx_before_next_stop + leds_between_stops)
                         } else {
@@ -217,8 +217,8 @@ fn num_leds_between_stops(route: Route, destination: Destination, next_stop_name
             Route::Line1 => LN_1_STN_NAME_TO_LED_MAP_IDX[next_stop_name].1.1,
             Route::Line2 => LN_2_STN_NAME_TO_LED_MAP_IDX[next_stop_name].1.1,
         },
-        Destination::AngleLake => LN_1_STN_NAME_TO_LED_MAP_IDX[next_stop_name].0.1,
-        Destination::RedmondTech => LN_2_STN_NAME_TO_LED_MAP_IDX[next_stop_name].0.1,
+        Destination::FederalWayDT => LN_1_STN_NAME_TO_LED_MAP_IDX[next_stop_name].0.1,
+        Destination::RedmondDT => LN_2_STN_NAME_TO_LED_MAP_IDX[next_stop_name].0.1,
     }
 }
 
@@ -246,8 +246,8 @@ fn log_train_placement(
             Route::Line1 => "(N)".red(),
             Route::Line2 => "(W)".yellow(),
         },
-        Destination::AngleLake => "(S)".blue(),
-        Destination::RedmondTech => "(E)".green(),
+        Destination::FederalWayDT => "(S)".blue(),
+        Destination::RedmondDT => "(E)".green(),
     };
     let r = if color.r() == 0 { 0 } else { color.r().saturating_add(200) };
     let g = if color.g() == 0 { 0 } else { color.g().saturating_add(200) };
@@ -282,8 +282,8 @@ fn get_next_inbetween_idx(idx: usize, route: Route, destination: Destination, ne
                 }    
             },
         },
-        Destination::AngleLake => idx + 1,
-        Destination::RedmondTech => {
+        Destination::FederalWayDT => idx + 1,
+        Destination::RedmondDT => {
             if LN_1_STN_NAME_TO_LED_MAP_IDX.contains_key(&next_stop_name) {
                 idx + 1
             } else {
