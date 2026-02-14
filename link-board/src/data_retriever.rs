@@ -14,7 +14,7 @@ pub trait DataRetriever {
             Route::Line2 => LINE_2_ROUTE_ID,
         };
         format!(
-            "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/{}.json?includeSchedule=false&key={}",
+            "https://api.pugetsound.onebusaway.org/api/where/trips-for-route/{}.json?includeSchedule=false&includeStatus=true&key={}",
             route_id,
             api_key
         )

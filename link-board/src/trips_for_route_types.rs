@@ -17,7 +17,7 @@ pub struct Data {
 #[serde(rename_all="camelCase")]
 pub struct TripDetails {
     pub trip_id: String,
-    pub status: TripStatus,
+    pub status: Option<TripStatus>,
 }
 
 #[derive(Deserialize)]

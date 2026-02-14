@@ -34,11 +34,20 @@ fn parse_route(json_string: &String, route: Route) -> Result<Vec<Train>, Error> 
     }
     
     for trip in trips_for_route.data.list {
-        if trip.status.next_stop.is_none() || trip.status.next_stop_time_offset.is_none() {
+        let Some(status) = trip.status else {
+            warn!("status missing for {}", trip.trip_id);
             continue;
-        }
+        };
+        let Some(next_stop) = status.next_stop else {
+            warn!("no next stop for {}", trip.trip_id);
+            continue;
+        };
+        let Some(next_stop_time_offset) = status.next_stop_time_offset else {
+            warn!("no next stop time offset for {}", trip.trip_id);
+            continue;
+        };
         
-        if let Some(sched_dist) = trip.status.scheduled_distance_along_trip {
+        if let Some(sched_dist) = status.scheduled_distance_along_trip {
             if sched_dist == 0.0 {
                 warn!("trip {} not in progress yet on route {:?}, scheduledDistanceAlongTrip: {}", trip.trip_id, route, sched_dist);
             }
@@ -47,11 +56,11 @@ fn parse_route(json_string: &String, route: Route) -> Result<Vec<Train>, Error> 
         }
 
         trains.push(Train::new(
-            stops_to_names[&trip.status.next_stop.unwrap()].clone(),
+            stops_to_names[&next_stop].clone(),
             route,
             trip_ids_to_dests[&trip.trip_id],
-            trip.status.next_stop_time_offset.unwrap(),
-            trip.status.closest_stop_time_offset
+            next_stop_time_offset,
+            status.closest_stop_time_offset
         ));
     }
 
