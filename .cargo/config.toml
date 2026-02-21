@@ -1,0 +1,19 @@
+[target.xtensa-esp32-espidf]
+linker = "ldproxy"
+runner = "espflash flash --monitor"
+rustflags = [ "--cfg",  "espidf_time64"]
+
+[target.xtensa-esp32s3-espidf]
+linker = "ldproxy"
+# esp32s3 fails to compile without specifying the flash size
+runner = "espflash flash --monitor --flash-size 16mb"
+rustflags = [ "--cfg",  "espidf_time64"]
+
+[target.riscv32i-unknown-none-elf]
+
+[unstable]
+build-std = ["std", "panic_abort"]
+
+[env]
+# Note: this variable is not used by the pio builder (`cargo build --features pio`)
+ESP_IDF_VERSION = "v5.3.2"
