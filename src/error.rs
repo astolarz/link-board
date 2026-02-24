@@ -1,6 +1,6 @@
 use core::fmt;
-
 use log::SetLoggerError;
+#[cfg(feature="cli")]
 use tokio::io;
 
 pub struct Error {
@@ -12,8 +12,9 @@ struct ErrorImpl {
 }
 
 enum Kind {
-    #[cfg(feature = "cli")]
+    #[cfg(feature="cli")]
     ClientError(reqwest::Error),
+    #[cfg(feature="cli")]
     IoError(io::Error),
     JsonParseError(serde_json::Error),
     LoggerError(SetLoggerError),
@@ -30,7 +31,7 @@ pub enum TripParseErr {
 }
 
 impl Error {
-    #[cfg(feature = "cli")]
+    #[cfg(feature="cli")]
     pub fn client_error(req_err: reqwest::Error) -> Self {
         Self {
             err: Box::new(ErrorImpl {
@@ -39,6 +40,7 @@ impl Error {
         }
     }
 
+    #[cfg(feature="cli")]
     pub fn io_error(io_err: io::Error) -> Self {
         Self {
             err: Box::new(ErrorImpl {
@@ -80,7 +82,7 @@ impl Error {
 }
 
 
-#[cfg(feature = "cli")]
+#[cfg(feature="cli")]
 impl From<reqwest::Error> for Error {
     fn from(value: reqwest::Error) -> Self {
         Error::client_error(value)
@@ -99,6 +101,7 @@ impl From<SetLoggerError> for Error {
     }
 }
 
+#[cfg(feature="cli")]
 impl From<io::Error> for Error {
     fn from(value: io::Error) -> Self {
         Error::io_error(value)
@@ -114,8 +117,9 @@ impl fmt::Display for Error {
 impl fmt::Display for ErrorImpl {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.kind {
-            #[cfg(feature = "cli")]
+            #[cfg(feature="cli")]
             Kind::ClientError(e) => write!(f, "error retrieving data: {e}"),
+            #[cfg(feature="cli")]
             Kind::IoError(e) => write!(f, "tokio::io error: {e}"),
             Kind::JsonParseError(e) => write!(f, "error parsing JSON: {e}"),
             Kind::LoggerError(e) => write!(f, "logging error: {e}"),
