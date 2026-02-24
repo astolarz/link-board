@@ -1,14 +1,14 @@
+#![cfg(feature="esp32")]
+
 use anyhow::{Ok, Result};
-use data_retriever::get_data_retriever;
+// use data_retriever::dr::get_data_retriever;
 use dotenvy_macro::dotenv;
 use esp_idf_hal::interrupt::IsrCriticalSection;
 use esp_idf_svc::{eventloop::EspSystemEventLoop, hal::{delay, prelude::Peripherals}};
-use link_board::display;
-use spi_adapter::spi::SpiAdapter;
+use link_board::{data_retriever::dr::get_data_retriever, display, spi_adapter::spi::SpiAdapter};
+// use spi_adapter::spi::SpiAdapter;
 use wifi::wifi;
 
-mod spi_adapter;
-mod data_retriever;
 mod wifi;
 
 const LOOP_PAUSE: u32 = 60000;
