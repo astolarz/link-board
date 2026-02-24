@@ -17,7 +17,7 @@ required-features = ["esp32"]
 
 [features]
 default = ["cli"]
-cli = ["openssl", "reqwest", "simple_logger", "tokio"]
+cli = ["openssl", "reqwest", "simple_logger", "tokio/signal"]
 rpi = ["ws2818-rgb-led-spi-driver"]
 esp32 = ["anyhow", "embedded-svc", "esp-idf-hal", "esp-idf-svc", "smart-leds", "smol", "ws2812-spi"]
 
