@@ -68,10 +68,6 @@ impl LinkBoardDisplay for MapDisplay {
     fn get_1s_staging_idx(&self) -> usize {
         unimplemented!()
     }
-
-    fn show_2_line(&self) -> bool {
-        true
-    }
 }
 
 fn index_trains(led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {

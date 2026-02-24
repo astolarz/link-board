@@ -32,8 +32,6 @@ pub trait LinkBoardDisplay {
     fn get_1n_staging_idx(&self) -> usize;
     fn get_1s_init_idx(&self) -> usize;
     fn get_1s_staging_idx(&self) -> usize;
-    #[allow(dead_code)]
-    fn show_2_line(&self) -> bool;
 }
 
 #[derive(PartialEq)]
@@ -95,6 +93,7 @@ pub async fn render_trains(display: &mut Box<dyn LinkBoardDisplay>, data_retriev
     }
 }
 
+// TODO: Update to handle 2 Line or remove
 fn index_trains(display: &impl LinkBoardDisplay, led_strip: &mut Vec<Led>, trains: Vec<Train>) -> usize {
     let mut total = 0;
 

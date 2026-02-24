@@ -109,10 +109,6 @@ impl LinkBoardDisplay for StripDisplay {
     fn get_1s_staging_idx(&self) -> usize {
         SOUTH_TRAIN_STAGING_IDX
     }
-
-    fn show_2_line(&self) -> bool {
-        true
-    }
 }
 
 fn prepare_buffer_leds(led_strip: &mut Vec<Led>, init_idx: usize, led_val: Led) -> usize {

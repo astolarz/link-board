@@ -43,7 +43,7 @@ impl Train {
         debug!("trying to get idx for {:?}", self.next_stop_name.as_str());
         let raw_idx = match self.route { 
             // Subtract index of Angle Lake to normalize at 0
-            Route::Line1 => LN_1_STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()] - LN_1_STN_NAME_TO_LED_IDX["Angle Lake"],
+            Route::Line1 => LN_1_STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()] - LN_1_STN_NAME_TO_LED_IDX["Federal Way Downtown"],
             // Subtract index of South Bellevue to normalize at 0
             Route::Line2 => LN_2_STN_NAME_TO_LED_IDX[self.next_stop_name.as_str()] - LN_2_STN_NAME_TO_LED_IDX["South Bellevue"],
         };

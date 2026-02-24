@@ -64,8 +64,4 @@ impl LinkBoardDisplay for StringDisplay {
     fn get_1s_staging_idx(&self) -> usize {
         SOUTH_TRAIN_STAGING_IDX
     }
-
-    fn show_2_line(&self) -> bool {
-        false
-    }
 }
