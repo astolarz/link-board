@@ -6,10 +6,11 @@ license = "MIT OR Apache-2.0"
 
 [[bin]]
 name = "link-board"
+required-features = ["cli"]
 
 [features]
-default = ["headless"]
-headless = ["dep:openssl", "dep:reqwest", "dep:simple_logger", "tokio/signal"]
+default = ["cli"]
+cli = ["dep:openssl", "dep:reqwest", "dep:simple_logger", "tokio/signal"]
 rpi = ["dep:ws2818-rgb-led-spi-driver"]
 esp32 = []
 

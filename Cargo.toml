@@ -1,10 +1,10 @@
 [workspace]
 resolver = "2"
-
 members = [
     "link-board",
     "link-board-esp-idf",
 ]
+default-members = ["link-board"]
 
 [profile.release]
 opt-level = "s"
