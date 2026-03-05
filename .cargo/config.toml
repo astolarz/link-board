@@ -17,3 +17,8 @@ build-std = ["std", "panic_abort"]
 [env]
 # Note: this variable is not used by the pio builder (`cargo build --features pio`)
 ESP_IDF_VERSION = "v5.3.4"
+
+[alias]
+bcli = "build --bin cli --features cli"
+rcli = "run --bin cli --features cli"
+besp = "build --bin esp32 --features esp32 --target xtensa-esp32s3-espidf"
