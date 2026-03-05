@@ -49,7 +49,7 @@ pub mod spi {
     }
 }
 
-#[cfg(all(not(feature="rpi"), not(feature="esp32")))]
+#[cfg(feature="cli")]
 pub mod spi {
     use crate::led::Led;
     use super::SpiWriter;

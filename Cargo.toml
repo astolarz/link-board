@@ -17,10 +17,10 @@ harness = false # do not use the built in cargo test harness -> resolve rust-ana
 required-features = ["esp32"]
 
 [features]
-default = ["cli"]
+default = []
 cli = ["openssl", "reqwest", "simple_logger", "tokio/signal"]
-rpi = ["ws2818-rgb-led-spi-driver"]
 esp32 = ["anyhow", "embedded-svc", "esp-idf-hal", "esp-idf-svc", "smart-leds", "smol", "ws2812-spi"]
+rpi = ["ws2818-rgb-led-spi-driver"]
 
 [dependencies]
 cfg-if = "1"
@@ -28,26 +28,29 @@ colored = "3"
 dotenvy_macro = { version = "0.15.7" }
 futures = "0.3.31"
 log = { version = "0.4.22", features = ["max_level_debug", "release_max_level_info"] }
-openssl = { version = "0.10", features = ["vendored"], optional = true }
-phf = { version = "0.11", features = ["macros"] }
+phf = { version = "0.13", features = ["macros"] }
 priority-queue = "2.1.2"
-reqwest = { version = "0.12.7", optional = true }
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = { version = "1.0.128" }
+toml-cfg = "0.2.0"
+
+# cli deps:
+openssl = { version = "0.10", features = ["vendored"], optional = true }
+reqwest = { version = "0.13", optional = true }
 simple_logger = { version = "5", optional = true }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"], optional = true }
-toml-cfg = "0.2.0"
-ws2818-rgb-led-spi-driver = { version = "2.0.0", optional = true }
 
 # esp32 deps:
 anyhow = { version = "1", optional = true }
 embedded-svc = { version = "0.28.1", optional = true }
 esp-idf-hal = { version = "0.45.2", optional = true }
 esp-idf-svc = { version = "0.51", features = ["critical-section", "embassy-time-driver", "embassy-sync"], optional = true }
-#link-board = { version = "0.0.1", path = "../link-board", default-features = false, features = ["esp32"], optional = true }
 smart-leds = { version = "0.4.0", optional = true }
 smol = { version = "2.0.2", optional = true }
 ws2812-spi = { version = "0.5.0", features = ["mosi_idle_high"], optional = true }
+
+# rpi deps:
+ws2818-rgb-led-spi-driver = { version = "2.0.0", optional = true }
 
 [build-dependencies]
 embuild = "0.33"
