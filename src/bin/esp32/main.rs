@@ -3,7 +3,6 @@
 use anyhow::{Ok, Result};
 // use data_retriever::dr::get_data_retriever;
 use dotenvy_macro::dotenv;
-use esp_idf_hal::interrupt::IsrCriticalSection;
 use esp_idf_svc::{eventloop::EspSystemEventLoop, hal::{delay, prelude::Peripherals}};
 use link_board::{data_retriever::dr::get_data_retriever, display, spi_adapter::spi::SpiAdapter};
 // use spi_adapter::spi::SpiAdapter;
@@ -12,8 +11,6 @@ use wifi::wifi;
 mod wifi;
 
 const LOOP_PAUSE: u32 = 60000;
-
-static CS: IsrCriticalSection = IsrCriticalSection::new();
 
 fn main() -> Result<()> {
     // It is necessary to call this function once. Otherwise some patches to the runtime

@@ -7,8 +7,7 @@ pub trait SpiWriter {
 
 #[cfg(feature="rpi")]
 pub mod spi {
-    use crate::led::Led;
-    use super::SpiWriter;
+    use crate::{led::Led, spi_adapter::SpiWriter};
     use log::debug;
     use ws2818_rgb_led_spi_driver::{adapter_gen::WS28xxAdapter, adapter_spi::WS28xxSpiAdapter};
     use ws2818_rgb_led_spi_driver::encoding::encode_rgb;
@@ -51,8 +50,7 @@ pub mod spi {
 
 #[cfg(feature="cli")]
 pub mod spi {
-    use crate::led::Led;
-    use super::SpiWriter;
+    use crate::{led::Led, spi_adapter::SpiWriter};
     use log::debug;
     use colored::Colorize;
 
@@ -89,13 +87,12 @@ pub mod spi {
 
 #[cfg(feature="esp32")]
 pub mod spi {
-    use esp_idf_hal::gpio::OutputPin;
-    use esp_idf_hal::{gpio::InputPin, spi::{config::Config, SpiBusDriver, SpiDriver, SpiDriverConfig, SPI2}};
-    use link_board::led::Led;
-    use link_board::spi_adapter::SpiWriter;
+    use crate::{led::Led, spi_adapter::SpiWriter};
+    use esp_idf_hal::{gpio::{InputPin, OutputPin}, interrupt::IsrCriticalSection, spi::{config::Config, SpiBusDriver, SpiDriver, SpiDriverConfig, SPI2}};
     use smart_leds::{SmartLedsWrite, RGB8};
     use ws2812_spi::Ws2812;
-    use crate::CS;
+
+    static CS: IsrCriticalSection = IsrCriticalSection::new();
 
     pub struct SpiAdapter {
         adapter: Ws2812<SpiBusDriver<'static, SpiDriver<'static>>>,

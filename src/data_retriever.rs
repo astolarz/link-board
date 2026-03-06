@@ -81,8 +81,8 @@ pub mod dr {
 
 #[cfg(feature="esp32")]
 pub mod dr {
+    use crate::{data_retriever::DataRetriever, display::Route, env, error::Error};
     use esp_idf_hal::io::Read;
-    use crate::{data_retriever::DataRetriever, display::Route, env};
     use embedded_svc::http::{client::Client, Method};
     use esp_idf_svc::http::client::{Configuration, EspHttpConnection};
 
@@ -97,7 +97,7 @@ pub mod dr {
     }
 
     impl DataRetriever for DataRetrieverImpl {
-        async fn get_json_for_all_trains(&self) -> Result<Vec<(link_board::display::Route, String)>, link_board::error::Error> {
+        async fn get_json_for_all_trains(&self) -> Result<Vec<(Route, String)>, Error> {
             // much of this code is from https://github.com/esp-rs/std-training/blob/main/intro/http-client/examples/https_client.rs
             let routes = vec![Route::Line1, Route::Line2];
             log::info!("retrieving {} route(s)", routes.len());
