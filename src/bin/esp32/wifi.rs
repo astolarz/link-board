@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 use esp_idf_svc::{
     eventloop::EspSystemEventLoop,
-    hal::peripheral,
+    hal::modem::Modem,
     nvs::EspDefaultNvsPartition,
     wifi::{AuthMethod, BlockingWifi, ClientConfiguration, Configuration, EspWifi},
 };
@@ -11,7 +11,7 @@ use log::info;
 pub fn wifi(
     ssid: &str,
     pass: &str,
-    modem: impl peripheral::Peripheral<P = esp_idf_svc::hal::modem::Modem> + 'static,
+    modem: Modem<'static>,
     sysloop: EspSystemEventLoop,
 ) -> Result<Box<EspWifi<'static>>> {
     let mut auth_method = AuthMethod::WPA2Personal;

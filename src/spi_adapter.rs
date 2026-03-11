@@ -99,7 +99,7 @@ pub mod spi {
     }
     
     impl SpiAdapter {
-        pub fn new(spi: SPI2, sclk: impl OutputPin, serial_out: impl OutputPin, serial_in: impl InputPin) -> Self {
+        pub fn new(spi: SPI2<'static>, sclk: impl OutputPin + 'static, serial_out: impl OutputPin + 'static, serial_in: impl InputPin + 'static) -> Self {
             log::info!("setting up spi driver");
             let driver = SpiDriver::new::<SPI2>(
                 spi,

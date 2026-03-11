@@ -1,11 +1,11 @@
 [package]
 name = "link-board"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 authors = ["Aaron Stolarz <aaronstolarz@gmail.com>"]
 license = "MIT OR Apache-2.0"
 resolver = "2"
-rust-version = "1.92"
+rust-version = "1.82"
 
 [[bin]]
 name = "cli"
@@ -19,7 +19,7 @@ required-features = ["esp32"]
 [features]
 default = []
 cli = ["openssl", "reqwest", "simple_logger", "tokio/signal"]
-esp32 = ["anyhow", "embedded-svc", "esp-idf-hal", "esp-idf-svc", "smart-leds", "smol", "ws2812-spi"]
+esp32 = ["anyhow", "embedded-svc", "esp-idf-hal", "esp-idf-svc", "smart-leds", "smol", "ws2812-spi", "piper"]
 rpi = ["ws2818-rgb-led-spi-driver"]
 
 [dependencies]
@@ -42,12 +42,14 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"], optional = tr
 
 # esp32 deps:
 anyhow = { version = "1", optional = true }
-embedded-svc = { version = "0.28.1", optional = true }
-esp-idf-hal = { version = "0.45.2", optional = true }
-esp-idf-svc = { version = "0.51", features = ["critical-section", "embassy-time-driver", "embassy-sync"], optional = true }
+embedded-svc = { version = "0.29.0", optional = true }
+esp-idf-hal = { version = "0.46.2", optional = true }
+esp-idf-svc = { version = "0.52", features = ["critical-section", "embassy-sync"], optional = true }
 smart-leds = { version = "0.4.0", optional = true }
 smol = { version = "2.0.2", optional = true }
 ws2812-spi = { version = "0.5.0", features = ["mosi_idle_high"], optional = true }
+# latest piper (0.2.5) fails to compile for debug and release. 0.2.4 compiles for debug, but not release.
+piper = { version = "=0.2.4", optional = true }
 
 # rpi deps:
 ws2818-rgb-led-spi-driver = { version = "2.0.0", optional = true }
