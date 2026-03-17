@@ -1,11 +1,9 @@
 #![cfg(feature="esp32")]
 
 use anyhow::{Ok, Result};
-// use data_retriever::dr::get_data_retriever;
 use dotenvy_macro::dotenv;
 use esp_idf_svc::{eventloop::EspSystemEventLoop, hal::{delay, peripherals::Peripherals}};
 use link_board::{data_retriever::dr::get_data_retriever, display, spi_adapter::spi::SpiAdapter};
-// use spi_adapter::spi::SpiAdapter;
 use wifi::wifi;
 
 mod wifi;
@@ -32,7 +30,7 @@ fn main() -> Result<()> {
         )
     })?;
 
-    let mut i: u64 = 0;
+    let mut i: usize = 0;
     let spi_adapter = SpiAdapter::new(
         peripherals.spi2,
         peripherals.pins.gpio14,
