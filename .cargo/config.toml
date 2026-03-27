@@ -21,4 +21,5 @@ ESP_IDF_VERSION = "v5.3.4"
 [alias]
 bcli = "build --bin cli --features cli"
 rcli = "run --bin cli --features cli"
-besp = "build --bin esp32 --features esp32 --target xtensa-esp32s3-espidf"
+besp = "build --bin esp32 --features esp32 --target xtensa-esp32-espidf"
+besps3 = "build --bin esp32 --features esp32 --target xtensa-esp32s3-espidf"
