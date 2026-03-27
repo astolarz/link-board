@@ -77,7 +77,7 @@ pub fn get_display(adapter: impl SpiWriter + 'static) -> Box<dyn LinkBoardDispla
     display
 }
 
-pub async fn render_trains(display: &mut Box<dyn LinkBoardDisplay>, data_retriever: &impl DataRetriever) {
+pub async fn render_trains(display: &mut Box<dyn LinkBoardDisplay>, data_retriever: &mut impl DataRetriever) {
     match data_parser::get_all_trains(data_retriever).await {
         Ok(trains) => {
             match display.update_trains(trains) {

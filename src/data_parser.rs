@@ -2,21 +2,21 @@ use crate::{constants::Destination, data_retriever::DataRetriever, display::Rout
 use std::collections::HashMap;
 use log::{info, warn};
 
-pub async fn get_all_trains(data_retriever: &impl DataRetriever) -> Result<Vec<Train>, Error> {
-    let mut all_trains = vec![];
-    let trains_json = data_retriever.get_json_for_all_trains().await?;
+pub async fn get_all_trains(data_retriever: &mut impl DataRetriever) -> Result<Vec<Train>, Error> {
+    let routes = vec![Route::Line1, Route::Line2];
+    let mut trains = vec![];
 
-    for (route, json) in trains_json {
-        let mut trains = parse_route(&json, route)?;
-        all_trains.append(&mut trains);
+    for route in routes {
+        parse_route(route, data_retriever, &mut trains).await?;
     }
 
-    Ok(all_trains)
+    Ok(trains)
 }
 
-fn parse_route(json_string: &String, route: Route) -> Result<Vec<Train>, Error> {
-    let mut trains = vec![];
-    let trips_for_route: TripsForRoute = serde_json::from_str(json_string)?;
+async fn parse_route(route: Route, data_retriever: &mut impl DataRetriever, trains: &mut Vec<Train>) -> Result<(), Error> {
+    let json_string = data_retriever.get_json_for_route(route).await?;
+
+    let trips_for_route: TripsForRoute = serde_json::from_str(&json_string)?;
     info!("successfully parsed trips for route");
 
     let mut trip_ids_to_dests = HashMap::new();
@@ -64,7 +64,7 @@ fn parse_route(json_string: &String, route: Route) -> Result<Vec<Train>, Error> 
         ));
     }
 
-    Ok(trains)
+    Ok(())
 }
 
 fn dir_id_to_destination(dir_id: Option<&str>, route: Route) -> Option<Destination> {

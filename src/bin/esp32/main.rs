@@ -39,7 +39,7 @@ fn main() -> Result<()> {
     );
 
     let mut display = display::get_display(spi_adapter);
-    let data_retriever = get_data_retriever();
+    let mut data_retriever = get_data_retriever();
 
     let sysloop = EspSystemEventLoop::take()?;
     let wifi_ssid = dotenv!("WIFI_SSID");
@@ -58,7 +58,7 @@ fn main() -> Result<()> {
         loop {
             log::info!("loop {}", i);
             
-            display::render_trains(&mut display, &data_retriever).await;
+            display::render_trains(&mut display, &mut data_retriever).await;
             
             log::info!("sleeping...");
             delay.delay_ms(LOOP_PAUSE);

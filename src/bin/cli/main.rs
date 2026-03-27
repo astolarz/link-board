@@ -11,7 +11,7 @@ async fn main() -> Result<(), Error> {
     let prog_start = Instant::now();
 
     let mut display = display::get_display(spi_adapter::spi::get_adapter());
-    let data_retriever = get_data_retriever();
+    let mut data_retriever = get_data_retriever();
 
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
@@ -36,7 +36,7 @@ async fn main() -> Result<(), Error> {
         }
 
         info!("{:?} secs since main loop started.", prog_start.elapsed().as_secs());
-        display::render_trains(&mut display, &data_retriever).await;
+        display::render_trains(&mut display, &mut data_retriever).await;
         info!("i_{} going to sleep after {} seconds", i, loop_time.elapsed().as_secs());
         i += 1;
     }
